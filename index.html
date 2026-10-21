@@ -34,6 +34,7 @@
         .btn:active { opacity: 0.8; }
         .btn-orange { background: var(--accent-orange); color: white; }
         .btn-green { background: var(--accent-green); color: white; }
+        .btn-outline { background: transparent; color: var(--text-muted); border: 1px solid #334155; }
         
         /* Player Modal */
         #player-modal { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: var(--bg-primary); z-index: 200; padding: 20px; flex-direction: column; justify-content: space-between; }
@@ -95,6 +96,7 @@
                 <!-- Lista de ejercicios generada dinámicamente -->
             </ul>
             <button class="btn btn-orange" onclick="startWorkout()">🚀 Iniciar Entrenamiento Guiado</button>
+            <button class="btn btn-outline" onclick="resetCurrentWorkoutSession()">🔄 Reiniciar Rutina Actual</button>
         </div>
 
         <div class="card">
@@ -210,8 +212,8 @@
                 <div class="progress-bar-fill" id="progress-fill"></div>
             </div>
         </div>
-        <div>
-            <p id="ex-desc" style="font-size: 0.85rem; color: var(--text-muted); text-align: center; margin-bottom: 12px;">Sostén la pesa al pecho y da un paso hacia atrás.</p>
+        <div style="display: flex; gap: 8px; flex-direction: column;">
+            <button class="btn btn-outline" onclick="restartWorkoutSession()">🔄 Volver a Empezar Rutina</button>
             <button class="btn btn-orange" onclick="stopWorkout()">Cancelar Entrenamiento</button>
         </div>
     </div>
@@ -231,13 +233,13 @@
             if (tabId === 'tab-calendar') renderCalendar();
         }
 
-        // Estado persistente
+        // Estado persistente (NO SE TOCA AL REINICIAR RUTINA)
         let state = JSON.parse(localStorage.getItem('fitkettle_v2_state')) || {
             creatineLastDate: null,
             creatineStreak: 0,
             water: 0,
             cardioHistory: [],
-            workoutLog: {} // 'YYYY-MM-DD': { routine: 'A', name: 'Rutina Día A' }
+            workoutLog: {}
         };
 
         function saveState() {
@@ -271,7 +273,6 @@
             }
         };
 
-        // Selecciona automáticamente la rutina según el día del año (rotación cada 2 días)
         const dayOfYear = Math.floor((today - new Date(today.getFullYear(), 0, 0)) / 1000 / 60 / 60 / 24);
         const currentRoutineKey = (Math.floor(dayOfYear / 2) % 2 === 0) ? 'A' : 'B';
         const activeRoutine = routines[currentRoutineKey];
@@ -327,7 +328,6 @@
             }
         }
 
-        // Render del Calendario
         function renderCalendar() {
             const calDays = document.getElementById('calendar-days');
             calDays.innerHTML = '';
@@ -371,6 +371,24 @@
         let totalTime = 0;
         let animFrame = null;
         let animAngle = 0;
+
+        // REINICIO EXCLUSIVO DE LA SESIÓN DE EJERCICIOS
+        function resetCurrentWorkoutSession() {
+            clearInterval(workoutTimer);
+            currentExIdx = 0;
+            currentRound = 1;
+            isRest = false;
+            alert("🔄 Rutina reiniciada. Está lista para empezar desde la Ronda 1.");
+        }
+
+        function restartWorkoutSession() {
+            clearInterval(workoutTimer);
+            currentExIdx = 0;
+            currentRound = 1;
+            isRest = false;
+            setupExercise();
+            startTimer();
+        }
 
         function startWorkout() {
             document.getElementById('player-modal').style.display = 'flex';
@@ -422,7 +440,6 @@
                             currentRound++;
                         }
                         if (currentRound > 4) {
-                            // Registrar en el calendario
                             const todayNow = new Date();
                             const dateKey = `${todayNow.getFullYear()}-${(todayNow.getMonth()+1).toString().padStart(2,'0')}-${todayNow.getDate().toString().padStart(2,'0')}`;
                             state.workoutLog[dateKey] = { routine: currentRoutineKey, name: activeRoutine.name };
@@ -438,7 +455,6 @@
             }, 1000);
         }
 
-        // MOTOR DE DIBUJO HUMANO EN CANVAS
         function startAnimation() {
             const canvas = document.getElementById('animCanvas');
             const ctx = canvas.getContext('2d');
@@ -458,43 +474,33 @@
                 const sin = Math.sin(phase);
 
                 if (type === 'lunge') {
-                    // Zancada Humana
                     const headY = cy - 70 + sin * 10;
-                    ctx.beginPath(); ctx.arc(cx, headY, 14, 0, Math.PI * 2); ctx.fill(); // Cabeza
-                    ctx.beginPath(); ctx.moveTo(cx, headY + 14); ctx.lineTo(cx, headY + 60); ctx.stroke(); // Torso
-                    // Pierna Delantera
+                    ctx.beginPath(); ctx.arc(cx, headY, 14, 0, Math.PI * 2); ctx.fill();
+                    ctx.beginPath(); ctx.moveTo(cx, headY + 14); ctx.lineTo(cx, headY + 60); ctx.stroke();
                     ctx.beginPath(); ctx.moveTo(cx, headY + 60); ctx.lineTo(cx - 30, headY + 90); ctx.lineTo(cx - 30, headY + 120); ctx.stroke();
-                    // Pierna Trasera
                     ctx.beginPath(); ctx.moveTo(cx, headY + 60); ctx.lineTo(cx + 40, headY + 85); ctx.lineTo(cx + 50, headY + 120); ctx.stroke();
-                    // Pesa Rusa al Pecho
                     ctx.fillStyle = kettleColor;
                     ctx.beginPath(); ctx.arc(cx - 10, headY + 35, 12, 0, Math.PI * 2); ctx.fill();
                 } else if (type === 'swing') {
-                    // Swing de Kettlebell
                     const headX = cx - sin * 20;
                     const headY = cy - 60;
-                    ctx.beginPath(); ctx.arc(headX, headY, 14, 0, Math.PI * 2); ctx.fill(); // Cabeza
-                    ctx.beginPath(); ctx.moveTo(headX, headY + 14); ctx.lineTo(cx, cy + 10); ctx.stroke(); // Torso
-                    // Piernas
+                    ctx.beginPath(); ctx.arc(headX, headY, 14, 0, Math.PI * 2); ctx.fill();
+                    ctx.beginPath(); ctx.moveTo(headX, headY + 14); ctx.lineTo(cx, cy + 10); ctx.stroke();
                     ctx.beginPath(); ctx.moveTo(cx, cy + 10); ctx.lineTo(cx - 20, cy + 70); ctx.stroke();
                     ctx.beginPath(); ctx.moveTo(cx, cy + 10); ctx.lineTo(cx + 20, cy + 70); ctx.stroke();
-                    // Brazos y Pesa elevándose
                     const kbX = cx + sin * 60;
                     const kbY = cy - 10 - sin * 30;
                     ctx.beginPath(); ctx.moveTo(headX, headY + 25); ctx.lineTo(kbX, kbY); ctx.stroke();
                     ctx.fillStyle = kettleColor;
                     ctx.beginPath(); ctx.arc(kbX, kbY, 14, 0, Math.PI * 2); ctx.fill();
                 } else if (type === 'bridge') {
-                    // Puente de Glúteos
-                    ctx.beginPath(); ctx.arc(cx - 70, cy + 40, 12, 0, Math.PI * 2); ctx.fill(); // Cabeza
+                    ctx.beginPath(); ctx.arc(cx - 70, cy + 40, 12, 0, Math.PI * 2); ctx.fill();
                     const hipY = cy + 10 - Math.abs(sin) * 35;
-                    ctx.beginPath(); ctx.moveTo(cx - 60, cy + 40); ctx.lineTo(cx, hipY); ctx.stroke(); // Torso elevándose
-                    ctx.beginPath(); ctx.moveTo(cx, hipY); ctx.lineTo(cx + 40, cy + 40); ctx.stroke(); // Piernas
-                    // Pesa sobre la cadera
+                    ctx.beginPath(); ctx.moveTo(cx - 60, cy + 40); ctx.lineTo(cx, hipY); ctx.stroke();
+                    ctx.beginPath(); ctx.moveTo(cx, hipY); ctx.lineTo(cx + 40, cy + 40); ctx.stroke();
                     ctx.fillStyle = kettleColor;
                     ctx.beginPath(); ctx.arc(cx, hipY - 12, 13, 0, Math.PI * 2); ctx.fill();
                 } else {
-                    // Figura Humana Estándar en Sentadilla / Movimiento
                     const bodyY = cy - 30 + Math.abs(sin) * 20;
                     ctx.beginPath(); ctx.arc(cx, bodyY - 40, 14, 0, Math.PI * 2); ctx.fill();
                     ctx.beginPath(); ctx.moveTo(cx, bodyY - 26); ctx.lineTo(cx, bodyY + 30); ctx.stroke();
