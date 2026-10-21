@@ -40,7 +40,7 @@
         #player-modal { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: var(--bg-primary); z-index: 200; padding: 20px; flex-direction: column; justify-content: space-between; }
         #canvas-container { width: 100%; height: 250px; background: #020617; border-radius: 12px; display: flex; justify-content: center; align-items: center; overflow: hidden; border: 1px solid #334155; }
         canvas { background: #020617; }
-        .timer-display { font-size: 3.5rem; font-weight: bold; text-align: center; color: var(--accent); margin: 10px 0; }
+        .timer-display { font-size: 3.5rem; font-weight: bold; text-align: center; color: var(--accent); margin: 5px 0; }
         .progress-bar-bg { width: 100%; height: 10px; background: #334155; border-radius: 5px; overflow: hidden; }
         .progress-bar-fill { height: 100%; background: var(--accent); width: 0%; transition: width 0.3s linear; }
 
@@ -93,7 +93,7 @@
                 Rotación de 2 días.
             </p>
             <ul id="exercise-list" style="font-size: 0.85rem; padding-left: 20px; color: #cbd5e1; margin-bottom: 15px;">
-                <!-- Lista de ejercicios generada dinámicamente -->
+                <!-- Lista generada dinámicamente -->
             </ul>
             <button class="btn btn-orange" onclick="startWorkout()">🚀 Iniciar Entrenamiento Guiado</button>
             <button class="btn btn-outline" onclick="resetCurrentWorkoutSession()">🔄 Reiniciar Rutina Actual</button>
@@ -125,9 +125,7 @@
                 <div class="calendar-day-header">Sáb</div>
                 <div class="calendar-day-header">Dom</div>
             </div>
-            <div class="calendar-grid" id="calendar-days">
-                <!-- Días del mes dinámicos -->
-            </div>
+            <div class="calendar-grid" id="calendar-days"></div>
         </div>
         <div class="card" id="day-detail-card" style="display:none;">
             <div class="card-title" id="detail-date">Detalle del Día</div>
@@ -199,15 +197,15 @@
     <!-- PLAYER MODAL -->
     <div id="player-modal">
         <div>
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
                 <h3 id="ex-title" style="color: var(--accent);">Zancadas Inversas</h3>
                 <span id="ex-round" style="font-size: 0.85rem; color: var(--text-muted);">Ronda 1/4</span>
             </div>
             <div id="canvas-container">
-                <canvas id="animCanvas" width="300" height="230"></canvas>
+                <canvas id="animCanvas" width="300" height="240"></canvas>
             </div>
             <div class="timer-display" id="timer-val">00:45</div>
-            <div id="timer-status" style="text-align: center; color: var(--accent-orange); font-weight: bold; margin-bottom: 8px;">¡TRABAJO!</div>
+            <div id="timer-status" style="text-align: center; color: var(--accent-orange); font-weight: bold; margin-bottom: 5px;">¡TRABAJO!</div>
             <div class="progress-bar-bg">
                 <div class="progress-bar-fill" id="progress-fill"></div>
             </div>
@@ -233,8 +231,7 @@
             if (tabId === 'tab-calendar') renderCalendar();
         }
 
-        // Estado persistente (NO SE TOCA AL REINICIAR RUTINA)
-        let state = JSON.parse(localStorage.getItem('fitkettle_v2_state')) || {
+        let state = JSON.parse(localStorage.getItem('fitkettle_v4_state')) || {
             creatineLastDate: null,
             creatineStreak: 0,
             water: 0,
@@ -243,11 +240,10 @@
         };
 
         function saveState() {
-            localStorage.setItem('fitkettle_v2_state', JSON.stringify(state));
+            localStorage.setItem('fitkettle_v4_state', JSON.stringify(state));
             updateUI();
         }
 
-        // Rutinas Rotativas (A y B)
         const routines = {
             A: {
                 name: "Rutina Día A: Fuerza e Impacto",
@@ -362,7 +358,6 @@
             }
         }
 
-        // Temporizador y Dibujo Humano Realista
         let workoutTimer = null;
         let currentExIdx = 0;
         let currentRound = 1;
@@ -370,9 +365,8 @@
         let timeLeft = 0;
         let totalTime = 0;
         let animFrame = null;
-        let animAngle = 0;
+        let animPhase = 0;
 
-        // REINICIO EXCLUSIVO DE LA SESIÓN DE EJERCICIOS
         function resetCurrentWorkoutSession() {
             clearInterval(workoutTimer);
             currentExIdx = 0;
@@ -459,63 +453,100 @@
             const canvas = document.getElementById('animCanvas');
             const ctx = canvas.getContext('2d');
 
-            function drawHuman(cx, cy, phase, type) {
-                ctx.clearRect(0, 0, canvas.width, canvas.height);
-                ctx.lineWidth = 6;
+            function drawBodyPart(x1, y1, x2, y2, width) {
+                ctx.beginPath();
+                ctx.moveTo(x1, y1);
+                ctx.lineTo(x2, y2);
+                ctx.lineWidth = width;
                 ctx.lineCap = 'round';
-                ctx.lineJoin = 'round';
+                ctx.stroke();
+            }
+
+            function drawKettlebell(x, y) {
+                ctx.fillStyle = '#f97316';
+                ctx.strokeStyle = '#c2410c';
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.arc(x, y + 6, 11, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.stroke();
+                ctx.beginPath();
+                ctx.arc(x, y - 2, 7, Math.PI, 0, false);
+                ctx.lineWidth = 3;
+                ctx.stroke();
+            }
+
+            function renderHuman(phase, type) {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
                 
-                const skinColor = '#38bdf8';
-                const kettleColor = '#f97316';
+                const skin = '#38bdf8';
+                ctx.strokeStyle = skin;
+                ctx.fillStyle = skin;
 
-                ctx.strokeStyle = skinColor;
-                ctx.fillStyle = skinColor;
-
-                const sin = Math.sin(phase);
+                const s = Math.sin(phase);
+                const cx = 150;
+                const cy = 130;
 
                 if (type === 'lunge') {
-                    const headY = cy - 70 + sin * 10;
-                    ctx.beginPath(); ctx.arc(cx, headY, 14, 0, Math.PI * 2); ctx.fill();
-                    ctx.beginPath(); ctx.moveTo(cx, headY + 14); ctx.lineTo(cx, headY + 60); ctx.stroke();
-                    ctx.beginPath(); ctx.moveTo(cx, headY + 60); ctx.lineTo(cx - 30, headY + 90); ctx.lineTo(cx - 30, headY + 120); ctx.stroke();
-                    ctx.beginPath(); ctx.moveTo(cx, headY + 60); ctx.lineTo(cx + 40, headY + 85); ctx.lineTo(cx + 50, headY + 120); ctx.stroke();
-                    ctx.fillStyle = kettleColor;
-                    ctx.beginPath(); ctx.arc(cx - 10, headY + 35, 12, 0, Math.PI * 2); ctx.fill();
-                } else if (type === 'swing') {
-                    const headX = cx - sin * 20;
-                    const headY = cy - 60;
-                    ctx.beginPath(); ctx.arc(headX, headY, 14, 0, Math.PI * 2); ctx.fill();
-                    ctx.beginPath(); ctx.moveTo(headX, headY + 14); ctx.lineTo(cx, cy + 10); ctx.stroke();
-                    ctx.beginPath(); ctx.moveTo(cx, cy + 10); ctx.lineTo(cx - 20, cy + 70); ctx.stroke();
-                    ctx.beginPath(); ctx.moveTo(cx, cy + 10); ctx.lineTo(cx + 20, cy + 70); ctx.stroke();
-                    const kbX = cx + sin * 60;
-                    const kbY = cy - 10 - sin * 30;
-                    ctx.beginPath(); ctx.moveTo(headX, headY + 25); ctx.lineTo(kbX, kbY); ctx.stroke();
-                    ctx.fillStyle = kettleColor;
-                    ctx.beginPath(); ctx.arc(kbX, kbY, 14, 0, Math.PI * 2); ctx.fill();
+                    const hipY = cy - 20 + s * 6;
+                    const headX = cx - 20;
+                    const headY = hipY - 60;
+                    
+                    ctx.beginPath(); ctx.arc(headX, headY, 13, 0, Math.PI * 2); ctx.fill();
+                    drawBodyPart(headX, headY + 13, headX + 5, hipY, 14);
+                    drawBodyPart(headX + 5, hipY, headX - 35, hipY + 30, 8);
+                    drawBodyPart(headX - 35, hipY + 30, headX - 35, hipY + 70, 7);
+                    drawBodyPart(headX + 5, hipY, headX + 45, hipY + 35, 8);
+                    drawBodyPart(headX + 45, hipY + 35, headX + 55, hipY + 70, 7);
+                    drawBodyPart(headX + 5, hipY - 35, headX - 10, hipY - 15, 7);
+                    drawKettlebell(headX - 10, hipY - 12);
+
                 } else if (type === 'bridge') {
-                    ctx.beginPath(); ctx.arc(cx - 70, cy + 40, 12, 0, Math.PI * 2); ctx.fill();
-                    const hipY = cy + 10 - Math.abs(sin) * 35;
-                    ctx.beginPath(); ctx.moveTo(cx - 60, cy + 40); ctx.lineTo(cx, hipY); ctx.stroke();
-                    ctx.beginPath(); ctx.moveTo(cx, hipY); ctx.lineTo(cx + 40, cy + 40); ctx.stroke();
-                    ctx.fillStyle = kettleColor;
-                    ctx.beginPath(); ctx.arc(cx, hipY - 12, 13, 0, Math.PI * 2); ctx.fill();
+                    const floorY = cy + 50;
+                    const hipY = floorY - 30 - Math.abs(s) * 35;
+                    const headX = cx - 70;
+                    const headY = floorY - 20;
+
+                    ctx.beginPath(); ctx.arc(headX, headY, 13, 0, Math.PI * 2); ctx.fill();
+                    drawBodyPart(headX + 10, headY, cx, hipY, 14);
+                    drawBodyPart(cx, hipY, cx + 50, floorY, 8);
+                    drawKettlebell(cx, hipY - 10);
+
+                } else if (type === 'swing' || type === 'deadlift') {
+                    const lean = s * 25;
+                    const headX = cx - lean;
+                    const headY = cy - 50;
+                    const hipX = cx + lean * 0.4;
+                    const hipY = cy + 10;
+
+                    ctx.beginPath(); ctx.arc(headX, headY, 13, 0, Math.PI * 2); ctx.fill();
+                    drawBodyPart(headX, headY + 13, hipX, hipY, 14);
+                    drawBodyPart(hipX, hipY, hipX - 15, cy + 70, 8);
+                    drawBodyPart(hipX, hipY, hipX + 15, cy + 70, 8);
+
+                    const kbX = headX - 30 + s * 55;
+                    const kbY = hipY + 20 + Math.abs(s) * 30;
+                    drawBodyPart(headX, headY + 20, kbX, kbY, 6);
+                    drawKettlebell(kbX, kbY);
+
                 } else {
-                    const bodyY = cy - 30 + Math.abs(sin) * 20;
-                    ctx.beginPath(); ctx.arc(cx, bodyY - 40, 14, 0, Math.PI * 2); ctx.fill();
-                    ctx.beginPath(); ctx.moveTo(cx, bodyY - 26); ctx.lineTo(cx, bodyY + 30); ctx.stroke();
-                    ctx.beginPath(); ctx.moveTo(cx, bodyY + 30); ctx.lineTo(cx - 25, cy + 70); ctx.stroke();
-                    ctx.beginPath(); ctx.moveTo(cx, bodyY + 30); ctx.lineTo(cx + 25, cy + 70); ctx.stroke();
-                    ctx.fillStyle = kettleColor;
-                    ctx.beginPath(); ctx.arc(cx, bodyY + 5, 12, 0, Math.PI * 2); ctx.fill();
+                    const bodyY = cy - 10 + Math.abs(s) * 15;
+                    const headX = cx;
+                    const headY = bodyY - 55;
+
+                    ctx.beginPath(); ctx.arc(headX, headY, 13, 0, Math.PI * 2); ctx.fill();
+                    drawBodyPart(headX, headY + 13, headX, bodyY + 10, 14);
+                    drawBodyPart(headX, bodyY + 10, headX - 20, cy + 60, 8);
+                    drawBodyPart(headX, bodyY + 10, headX + 20, cy + 60, 8);
+                    drawKettlebell(headX + s * 25, bodyY - 10);
                 }
             }
 
             function draw() {
-                animAngle += 0.06;
+                animPhase += 0.07;
                 const exList = activeRoutine.exercises;
                 const currentType = isRest ? 'rest' : exList[currentExIdx].type;
-                drawHuman(150, 110, animAngle, currentType);
+                renderHuman(animPhase, currentType);
                 animFrame = requestAnimationFrame(draw);
             }
             draw();
