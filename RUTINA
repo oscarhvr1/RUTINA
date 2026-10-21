@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FitKettle 3k - Desafío 21 Nov</title>
+    <style>
+        :root {
+            --bg-primary: #0f172a;
+            --bg-card: #1e293b;
+            --accent: #38bdf8;
+            --accent-orange: #f97316;
+            --accent-green: #10b981;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+        body { background-color: var(--bg-primary); color: var(--text-main); padding-bottom: 80px; }
+        header { background: linear-gradient(135deg, #1e293b, #0f172a); padding: 20px; border-bottom: 1px solid #334155; text-align: center; }
+        h1 { font-size: 1.5rem; color: var(--accent); margin-bottom: 4px; }
+        .subtitle { font-size: 0.85rem; color: var(--text-muted); }
+        .countdown-banner { background: #1e1b4b; border: 1px solid #4338ca; border-radius: 12px; padding: 12px; margin: 15px; text-align: center; display: flex; justify-content: space-around; align-items: center; }
+        .countdown-item { display: flex; flex-direction: column; }
+        .countdown-val { font-size: 1.4rem; font-weight: bold; color: var(--accent-orange); }
+        .countdown-lbl { font-size: 0.75rem; color: var(--text-muted); }
+        .nav-tabs { display: flex; justify-content: space-around; background: var(--bg-card); position: fixed; bottom: 0; left: 0; right: 0; border-top: 1px solid #334155; z-index: 100; }
+        .tab-btn { background: none; border: none; color: var(--text-muted); padding: 12px 8px; font-size: 0.75rem; flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px; cursor: pointer; }
+        .tab-btn.active { color: var(--accent); font-weight: bold; border-top: 2px solid var(--accent); }
+        .tab-content { display: none; padding: 15px; }
+        .tab-content.active { display: block; }
+        .card { background: var(--bg-card); border-radius: 12px; padding: 16px; margin-bottom: 15px; border: 1px solid #334155; }
+        .card-title { font-size: 1.1rem; font-weight: bold; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; }
+        .btn { background: var(--accent); color: #0f172a; border: none; padding: 12px 20px; border-radius: 8px; font-weight: bold; width: 100%; cursor: pointer; font-size: 1rem; margin-top: 8px; transition: opacity 0.2s; }
+        .btn:active { opacity: 0.8; }
+        .btn-orange { background: var(--accent-orange); color: white; }
+        .btn-green { background: var(--accent-green); color: white; }
+        
+        /* Player Modal */
+        #player-modal { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: var(--bg-primary); z-index: 200; padding: 20px; flex-direction: column; justify-content: space-between; }
+        #canvas-container { width: 100%; height: 240px; background: #020617; border-radius: 12px; display: flex; justify-content: center; align-items: center; overflow: hidden; border: 1px solid #334155; }
+        canvas { background: #020617; }
+        .timer-display { font-size: 3.5rem; font-weight: bold; text-align: center; color: var(--accent); margin: 10px 0; }
+        .progress-bar-bg { width: 100%; height: 10px; background: #334155; border-radius: 5px; overflow: hidden; }
+        .progress-bar-fill { height: 100%; background: var(--accent); width: 0%; transition: width 0.3s linear; }
+        
+        /* Meal Plan */
+        .meal-item { border-left: 3px solid var(--accent-orange); padding-left: 10px; margin-bottom: 12px; }
+        .meal-time { font-size: 0.8rem; color: var(--text-muted); }
+        .meal-title { font-weight: bold; margin: 2px 0; }
+        .meal-desc { font-size: 0.85rem; color: #cbd5e1; }
+
+        input[type="number"], input[type="text"] { width: 100%; padding: 10px; border-radius: 6px; border: 1px solid #334155; background: #0f172a; color: white; margin-bottom: 8px; }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>FitKettle 3k</h1>
+        <div class="subtitle">Rutina Kettlebell + Cardio + Creatina (-3kg al 21 Nov)</div>
+    </header>
+
+    <div class="countdown-banner">
+        <div class="countdown-item">
+            <span class="countdown-val" id="days-left">--</span>
+            <span class="countdown-lbl">Días Restantes</span>
+        </div>
+        <div class="countdown-item">
+            <span class="countdown-val">-3.0 kg</span>
+            <span class="countdown-lbl">Meta</span>
+        </div>
+        <div class="countdown-item">
+            <span class="countdown-val" id="creatine-streak">0 🔥</span>
+            <span class="countdown-lbl">Racha Creatina</span>
+        </div>
+    </div>
+
+    <!-- TAB 1: RUTINA -->
+    <div id="tab-workout" class="tab-content active">
+        <div class="card">
+            <div class="card-title">
+                <span>🏋️ Circuito Kettlebell (1 Pesa)</span>
+                <span style="font-size: 0.8rem; color: var(--accent);">20-30 min</span>
+            </div>
+            <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 12px;">
+                4 Rondas | Pecho, Abdomen, Cintura, Glúteos y Piernas.
+            </p>
+            <ul style="font-size: 0.85rem; padding-left: 20px; color: #cbd5e1; margin-bottom: 15px;">
+                <li>Zancadas Inversas (10 rep/lado)</li>
+                <li>Puente de Glúteos con Carga (12-15 rep)</li>
+                <li>Giros Rusos / Russian Twist (16-20 rep)</li>
+                <li>Flexiones Asimétricas (6-8 rep/lado)</li>
+                <li>Remo a una Mano (10 rep/lado)</li>
+            </ul>
+            <button class="btn btn-orange" onclick="startWorkout()">🚀 Iniciar Entrenamiento Guiado</button>
+        </div>
+
+        <div class="card">
+            <div class="card-title">🏃 Tracker de Cardio (Trote / Caminata)</div>
+            <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 10px;">Ingresa tu sesión del día:</p>
+            <input type="number" id="cardio-dist" placeholder="Distancia (km) ej: 3.5" step="0.1">
+            <input type="number" id="cardio-time" placeholder="Tiempo (minutos) ej: 30">
+            <button class="btn" onclick="saveCardio()">Registrar Cardio</button>
+            <div id="cardio-history" style="margin-top: 10px; font-size: 0.8rem; color: var(--text-muted);"></div>
+        </div>
+    </div>
+
+    <!-- TAB 2: HÁBITOS -->
+    <div id="tab-habits" class="tab-content">
+        <div class="card">
+            <div class="card-title">🧪 Creatina OstroVit (5g diarios)</div>
+            <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 12px;">
+                Tómala todos los días (idealmente post-entreno nocturno o en la mañana).
+            </p>
+            <button id="btn-creatine" class="btn btn-green" onclick="toggleCreatine()">Tomar 5g de Creatina Hoy</button>
+        </div>
+
+        <div class="card">
+            <div class="card-title">💧 Hidratación (Agua Pura)</div>
+            <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 10px;">Meta: 2.5 Litros al día (sin contar el mate)</p>
+            <h2 id="water-val" style="text-align: center; color: var(--accent); margin: 10px 0;">0.0 / 2.5 L</h2>
+            <div style="display: flex; gap: 8px;">
+                <button class="btn" onclick="addWater(0.25)">+ 250 ml</button>
+                <button class="btn" onclick="addWater(0.5)">+ 500 ml</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- TAB 3: ALIMENTACIÓN -->
+    <div id="tab-diet" class="tab-content">
+        <div class="card">
+            <div class="card-title">🥗 Plan de Alimentación (-3 kg)</div>
+            <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 15px;">Déficit moderado con alta proteína para proteger el músculo.</p>
+
+            <div class="meal-item">
+                <div class="meal-time">Desayuno</div>
+                <div class="meal-title">Mate + Huevo y Proteína</div>
+                <div class="meal-desc">Mate habitual + 2 huevos revueltos o duros + 1 rebanada de pan integral con palta o jamón.</div>
+            </div>
+
+            <div class="meal-item">
+                <div class="meal-time">Almuerzo</div>
+                <div class="meal-title">Plato Equilibrado</div>
+                <div class="meal-desc">150g-180g de pechuga de pollo, carne magra o pescado + 1 taza de arroz/papas + abundante ensalada verde.</div>
+            </div>
+
+            <div class="meal-item">
+                <div class="meal-time">Colación</div>
+                <div class="meal-title">Fruta o Yogur</div>
+                <div class="meal-desc">1 manzana o plátano mediano, o un yogur alto en proteína / puñado de frutos secos.</div>
+            </div>
+
+            <div class="meal-item">
+                <div class="meal-time">Cena (Post-Entrenamiento Nocturno)</div>
+                <div class="meal-title">Cena Ligera + Creatina</div>
+                <div class="meal-desc">Atún, pollo o tortillas de huevo con ensalada variada. Acompaña con tus 5g de creatina en agua.</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- NAV BARS -->
+    <nav class="nav-tabs">
+        <button class="tab-btn active" onclick="switchTab('tab-workout', this)">🏋️<span>Rutina</span></button>
+        <button class="tab-btn" onclick="switchTab('tab-habits', this)">🧪<span>Hábitos</span></button>
+        <button class="tab-btn" onclick="switchTab('tab-diet', this)">🥗<span>Dieta</span></button>
+    </nav>
+
+    <!-- PLAYER MODAL -->
+    <div id="player-modal">
+        <div>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                <h3 id="ex-title" style="color: var(--accent);">Zancadas Inversas</h3>
+                <span id="ex-round" style="font-size: 0.85rem; color: var(--text-muted);">Ronda 1/4</span>
+            </div>
+            <div id="canvas-container">
+                <canvas id="animCanvas" width="300" height="220"></canvas>
+            </div>
+            <div class="timer-display" id="timer-val">00:45</div>
+            <div id="timer-status" style="text-align: center; color: var(--accent-orange); font-weight: bold; margin-bottom: 8px;">¡TRABAJO!</div>
+            <div class="progress-bar-bg">
+                <div class="progress-bar-fill" id="progress-fill"></div>
+            </div>
+        </div>
+        <div>
+            <p id="ex-desc" style="font-size: 0.85rem; color: var(--text-muted); text-align: center; margin-bottom: 12px;">Sostén la pesa al pecho y da un paso hacia atrás.</p>
+            <button class="btn btn-orange" onclick="stopWorkout()">Cancelar Entrenamiento</button>
+        </div>
+    </div>
+
+    <script>
+        // Fecha meta: 21 de Noviembre de 2026
+        const targetDate = new Date('2026-11-21T00:00:00');
+        const today = new Date();
+        const diffTime = Math.max(0, targetDate - today);
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+        document.getElementById('days-left').innerText = diffDays;
+
+        // Navegación
+        function switchTab(tabId, btn) {
+            document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById(tabId).classList.add('active');
+            btn.classList.add('active');
+        }
+
+        // Estado persistente
+        let state = JSON.parse(localStorage.getItem('fitkettle_state')) || {
+            creatineLastDate: null,
+            creatineStreak: 0,
+            water: 0,
+            cardioHistory: []
+        };
+
+        function saveState() {
+            localStorage.setItem('fitkettle_state', JSON.stringify(state));
+            updateUI();
+        }
+
+        function updateUI() {
+            const todayStr = new Date().toDateString();
+            const btnC = document.getElementById('btn-creatine');
+            if (state.creatineLastDate === todayStr) {
+                btnC.innerText = "✓ Creatina Tomada Hoy";
+                btnC.style.background = "#334155";
+            } else {
+                btnC.innerText = "Tomar 5g de Creatina Hoy";
+                btnC.style.background = "var(--accent-green)";
+            }
+            document.getElementById('creatine-streak').innerText = `${state.creatineStreak} 🔥`;
+            document.getElementById('water-val').innerText = `${state.water.toFixed(2)} / 2.5 L`;
+
+            const ch = document.getElementById('cardio-history');
+            if (state.cardioHistory.length > 0) {
+                ch.innerHTML = "<strong>Últimos registros:</strong><br>" + state.cardioHistory.slice(-3).reverse().map(c => `• ${c.dist} km en ${c.time} min (${c.date})`).join('<br>');
+            }
+        }
+
+        function toggleCreatine() {
+            const todayStr = new Date().toDateString();
+            if (state.creatineLastDate !== todayStr) {
+                state.creatineLastDate = todayStr;
+                state.creatineStreak += 1;
+                saveState();
+            }
+        }
+
+        function addWater(amount) {
+            state.water = Math.min(5.0, state.water + amount);
+            saveState();
+        }
+
+        function saveCardio() {
+            const dist = parseFloat(document.getElementById('cardio-dist').value);
+            const time = parseInt(document.getElementById('cardio-time').value);
+            if (dist && time) {
+                state.cardioHistory.push({
+                    dist, time, date: new Date().toLocaleDateString()
+                });
+                document.getElementById('cardio-dist').value = '';
+                document.getElementById('cardio-time').value = '';
+                saveState();
+            }
+        }
+
+        // Animación e Iteración de Ejercicios
+        const exercises = [
+            { title: "Zancadas Inversas", desc: "Sostén la pesa al pecho. Da un paso largo atrás y baja la rodilla.", duration: 45, type: "lunge" },
+            { title: "Puente de Glúteos", desc: "Acuéstate, apoya la pesa en la pelvis y eleva la cadera apretando glúteos.", duration: 45, type: "bridge" },
+            { title: "Giros Rusos", desc: "Sentado, inclina el torso y gira la pesa de un lado a otro tocando el suelo.", duration: 45, type: "twist" },
+            { title: "Flexiones Asimétricas", desc: "Una mano en la pesa y otra en el suelo. Haz la flexión y cambia de mano.", duration: 45, type: "pushup" },
+            { title: "Remo a una Mano", desc: "Espalda recta, eleva el codo rozando la costilla trayendo la pesa a la cadera.", duration: 45, type: "row" }
+        ];
+
+        let workoutTimer = null;
+        let currentExIdx = 0;
+        let currentRound = 1;
+        let isRest = false;
+        let timeLeft = 0;
+        let totalTime = 0;
+        let animFrame = null;
+        let animAngle = 0;
+
+        function startWorkout() {
+            document.getElementById('player-modal').style.display = 'flex';
+            currentExIdx = 0;
+            currentRound = 1;
+            isRest = false;
+            setupExercise();
+            startTimer();
+            startAnimation();
+        }
+
+        function stopWorkout() {
+            clearInterval(workoutTimer);
+            cancelAnimationFrame(animFrame);
+            document.getElementById('player-modal').style.display = 'none';
+        }
+
+        function setupExercise() {
+            const ex = exercises[currentExIdx];
+            document.getElementById('ex-title').innerText = isRest ? "Descanso" : ex.title;
+            document.getElementById('ex-desc').innerText = isRest ? "Pausa, bebe un poco de agua y prepárate para el siguiente." : ex.desc;
+            document.getElementById('ex-round').innerText = `Ronda ${currentRound}/4 - Ejercicio ${currentExIdx + 1}/5`;
+            document.getElementById('timer-status').innerText = isRest ? "DESCANSO" : "¡A TRABAJAR!";
+            document.getElementById('timer-status').style.color = isRest ? "var(--accent-green)" : "var(--accent-orange)";
+            
+            timeLeft = isRest ? 15 : ex.duration;
+            totalTime = timeLeft;
+        }
+
+        function startTimer() {
+            clearInterval(workoutTimer);
+            workoutTimer = setInterval(() => {
+                timeLeft--;
+                const mins = Math.floor(timeLeft / 60).toString().padStart(2, '0');
+                const secs = (timeLeft % 60).toString().padStart(2, '0');
+                document.getElementById('timer-val').innerText = `${mins}:${secs}`;
+                document.getElementById('progress-fill').style.width = `${((totalTime - timeLeft) / totalTime) * 100}%`;
+
+                if (timeLeft <= 0) {
+                    if (!isRest) {
+                        isRest = true;
+                        setupExercise();
+                    } else {
+                        isRest = false;
+                        currentExIdx++;
+                        if (currentExIdx >= exercises.length) {
+                            currentExIdx = 0;
+                            currentRound++;
+                        }
+                        if (currentRound > 4) {
+                            alert("🎉 ¡Entrenamiento Completo! Excelente trabajo.");
+                            stopWorkout();
+                            return;
+                        }
+                        setupExercise();
+                    }
+                }
+            }, 1000);
+        }
+
+        function startAnimation() {
+            const canvas = document.getElementById('animCanvas');
+            const ctx = canvas.getContext('2d');
+
+            function draw() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                animAngle += 0.05;
+                const offset = Math.sin(animAngle) * 15;
+
+                ctx.strokeStyle = "#38bdf8";
+                ctx.lineWidth = 4;
+                ctx.fillStyle = "#f97316";
+
+                const exType = exercises[currentExIdx].type;
+
+                if (exType === 'lunge') {
+                    ctx.beginPath(); ctx.arc(150, 60, 12, 0, Math.PI * 2); ctx.stroke();
+                    ctx.beginPath(); ctx.moveTo(150, 72); ctx.lineTo(150, 130 + offset/2); ctx.stroke();
+                    ctx.beginPath(); ctx.moveTo(150, 130 + offset/2); ctx.lineTo(120, 180); ctx.stroke();
+                    ctx.beginPath(); ctx.moveTo(150, 130 + offset/2); ctx.lineTo(180, 180 - offset); ctx.stroke();
+                    ctx.beginPath(); ctx.arc(150, 95, 10, 0, Math.PI * 2); ctx.fill();
+                } else if (exType === 'bridge') {
+                    ctx.beginPath(); ctx.moveTo(50, 180); ctx.lineTo(250, 180); ctx.stroke();
+                    ctx.beginPath(); ctx.moveTo(80, 170); ctx.lineTo(150, 130 - Math.abs(offset)); ctx.lineTo(220, 170); ctx.stroke();
+                    ctx.beginPath(); ctx.arc(150, 120 - Math.abs(offset), 10, 0, Math.PI * 2); ctx.fill();
+                } else {
+                    ctx.beginPath(); ctx.arc(150, 80, 12, 0, Math.PI * 2); ctx.stroke();
+                    ctx.beginPath(); ctx.moveTo(150, 92); ctx.lineTo(150, 140); ctx.stroke();
+                    ctx.beginPath(); ctx.arc(150 + offset, 120, 10, 0, Math.PI * 2); ctx.fill();
+                }
+
+                animFrame = requestAnimationFrame(draw);
+            }
+            draw();
+        }
+
+        updateUI();
+    </script>
+</body>
+</html>
