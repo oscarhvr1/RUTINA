@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>FitKettle 3k - Desafío 21 Nov</title>
+    <script src="https://cdn.tailwindcss.com"></script>
     <style>
         :root {
             --bg-primary: #0f172a;
@@ -14,224 +15,254 @@
             --text-main: #f8fafc;
             --text-muted: #94a3b8;
         }
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
-        body { background-color: var(--bg-primary); color: var(--text-main); padding-bottom: 80px; }
-        header { background: linear-gradient(135deg, #1e293b, #0f172a); padding: 20px; border-bottom: 1px solid #334155; text-align: center; }
-        h1 { font-size: 1.5rem; color: var(--accent); margin-bottom: 4px; }
-        .subtitle { font-size: 0.85rem; color: var(--text-muted); }
-        .countdown-banner { background: #1e1b4b; border: 1px solid #4338ca; border-radius: 12px; padding: 12px; margin: 15px; text-align: center; display: flex; justify-content: space-around; align-items: center; }
-        .countdown-item { display: flex; flex-direction: column; }
-        .countdown-val { font-size: 1.4rem; font-weight: bold; color: var(--accent-orange); }
-        .countdown-lbl { font-size: 0.75rem; color: var(--text-muted); }
-        .nav-tabs { display: flex; justify-content: space-around; background: var(--bg-card); position: fixed; bottom: 0; left: 0; right: 0; border-top: 1px solid #334155; z-index: 100; }
-        .tab-btn { background: none; border: none; color: var(--text-muted); padding: 12px 8px; font-size: 0.75rem; flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px; cursor: pointer; }
-        .tab-btn.active { color: var(--accent); font-weight: bold; border-top: 2px solid var(--accent); }
-        .tab-content { display: none; padding: 15px; }
-        .tab-content.active { display: block; }
-        .card { background: var(--bg-card); border-radius: 12px; padding: 16px; margin-bottom: 15px; border: 1px solid #334155; }
-        .card-title { font-size: 1.1rem; font-weight: bold; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; }
-        .btn { background: var(--accent); color: #0f172a; border: none; padding: 12px 20px; border-radius: 8px; font-weight: bold; width: 100%; cursor: pointer; font-size: 1rem; margin-top: 8px; transition: opacity 0.2s; }
-        .btn:active { opacity: 0.8; }
-        .btn-orange { background: var(--accent-orange); color: white; }
-        .btn-green { background: var(--accent-green); color: white; }
-        .btn-outline { background: transparent; color: var(--text-muted); border: 1px solid #334155; }
-        
-        /* Player Modal */
-        #player-modal { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: var(--bg-primary); z-index: 200; padding: 20px; flex-direction: column; justify-content: space-between; }
-        #canvas-container { width: 100%; height: 250px; background: #020617; border-radius: 12px; display: flex; justify-content: center; align-items: center; overflow: hidden; border: 1px solid #334155; }
-        canvas { background: #020617; }
-        .timer-display { font-size: 3.5rem; font-weight: bold; text-align: center; color: var(--accent); margin: 5px 0; }
-        .progress-bar-bg { width: 100%; height: 10px; background: #334155; border-radius: 5px; overflow: hidden; }
-        .progress-bar-fill { height: 100%; background: var(--accent); width: 0%; transition: width 0.3s linear; }
-
-        /* Calendar Styles */
-        .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; margin-top: 10px; text-align: center; }
-        .calendar-day-header { font-size: 0.75rem; font-weight: bold; color: var(--text-muted); padding: 4px; }
-        .calendar-day { background: #0f172a; border: 1px solid #334155; border-radius: 6px; padding: 10px 2px; font-size: 0.85rem; position: relative; cursor: pointer; }
-        .calendar-day.completed { border-color: var(--accent-green); background: #064e3b; color: white; font-weight: bold; }
-        .calendar-day.today { border: 2px solid var(--accent); }
-
-        /* Meal Plan */
-        .meal-item { border-left: 3px solid var(--accent-orange); padding-left: 10px; margin-bottom: 12px; }
-        .meal-time { font-size: 0.8rem; color: var(--text-muted); }
-        .meal-title { font-weight: bold; margin: 2px 0; }
-        .meal-desc { font-size: 0.85rem; color: #cbd5e1; }
-
-        input[type="number"], input[type="text"] { width: 100%; padding: 10px; border-radius: 6px; border: 1px solid #334155; background: #0f172a; color: white; margin-bottom: 8px; }
+        body {
+            background-color: var(--bg-primary);
+            color: var(--text-main);
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            padding-bottom: 90px;
+        }
+        .canvas-card {
+            background: #020617;
+            border-radius: 8px;
+            border: 1px solid #334155;
+        }
+        /* Tab navigation bottom bar styling */
+        .nav-tabs {
+            background: rgba(30, 41, 59, 0.95);
+            backdrop-filter: blur(10px);
+        }
     </style>
 </head>
-<body>
+<body class="min-h-screen flex flex-col">
 
-    <header>
-        <h1>FitKettle 3k</h1>
-        <div class="subtitle">Rutina Kettlebell + Cardio + Creatina (-3kg al 21 Nov)</div>
+    <!-- Header -->
+    <header class="bg-slate-900 border-b border-slate-700 p-4 text-center sticky top-0 z-30 shadow-lg">
+        <h1 class="text-2xl font-black text-sky-400 tracking-wide">FITKETTLE 3K</h1>
+        <p class="text-xs text-slate-400 mt-1">Rutina Kettlebell + Cardio + Creatina (-3kg al 21 Nov)</p>
     </header>
 
-    <div class="countdown-banner">
-        <div class="countdown-item">
-            <span class="countdown-val" id="days-left">--</span>
-            <span class="countdown-lbl">Días Restantes</span>
+    <!-- Countdown & Stats Banner -->
+    <div class="m-4 p-4 bg-indigo-950/80 border border-indigo-700/50 rounded-xl shadow-md grid grid-cols-3 gap-2 text-center">
+        <div class="flex flex-col">
+            <span class="text-xl font-bold text-orange-500" id="days-left">--</span>
+            <span class="text-[10px] sm:text-xs text-slate-400 uppercase font-semibold">Días Restantes</span>
         </div>
-        <div class="countdown-item">
-            <span class="countdown-val">-3.0 kg</span>
-            <span class="countdown-lbl">Meta</span>
+        <div class="flex flex-col border-x border-indigo-800/60">
+            <span class="text-xl font-bold text-emerald-400">-3.0 kg</span>
+            <span class="text-[10px] sm:text-xs text-slate-400 uppercase font-semibold">Meta Peso</span>
         </div>
-        <div class="countdown-item">
-            <span class="countdown-val" id="creatine-streak">0 🔥</span>
-            <span class="countdown-lbl">Racha Creatina</span>
-        </div>
-    </div>
-
-    <!-- TAB 1: RUTINA -->
-    <div id="tab-workout" class="tab-content active">
-        <div class="card">
-            <div class="card-title">
-                <span id="routine-tag">🏋️ Circuito Kettlebell</span>
-                <span style="font-size: 0.8rem; color: var(--accent);">20-30 min</span>
-            </div>
-            <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 12px;" id="routine-desc">
-                Rotación de 2 días.
-            </p>
-            <ul id="exercise-list" style="font-size: 0.85rem; padding-left: 20px; color: #cbd5e1; margin-bottom: 15px;">
-                <!-- Lista generada dinámicamente -->
-            </ul>
-            <button class="btn btn-orange" onclick="startWorkout()">🚀 Iniciar Entrenamiento Guiado</button>
-            <button class="btn btn-outline" onclick="resetCurrentWorkoutSession()">🔄 Reiniciar Rutina Actual</button>
-        </div>
-
-        <div class="card">
-            <div class="card-title">🏃 Tracker de Cardio (Trote / Caminata)</div>
-            <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 10px;">Ingresa tu sesión del día:</p>
-            <input type="number" id="cardio-dist" placeholder="Distancia (km) ej: 3.5" step="0.1">
-            <input type="number" id="cardio-time" placeholder="Tiempo (minutos) ej: 30">
-            <button class="btn" onclick="saveCardio()">Registrar Cardio</button>
-            <div id="cardio-history" style="margin-top: 10px; font-size: 0.8rem; color: var(--text-muted);"></div>
+        <div class="flex flex-col">
+            <span class="text-xl font-bold text-orange-400" id="creatine-streak">0 🔥</span>
+            <span class="text-[10px] sm:text-xs text-slate-400 uppercase font-semibold">Racha Creatina</span>
         </div>
     </div>
 
-    <!-- TAB 2: CALENDARIO DE AVANCE -->
-    <div id="tab-calendar" class="tab-content">
-        <div class="card">
-            <div class="card-title">📅 Historial de Entrenamientos</div>
-            <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 10px;">
-                Revisa tus días completados y el detalle de cada rutina:
-            </p>
-            <div class="calendar-grid">
-                <div class="calendar-day-header">Lun</div>
-                <div class="calendar-day-header">Mar</div>
-                <div class="calendar-day-header">Mié</div>
-                <div class="calendar-day-header">Jue</div>
-                <div class="calendar-day-header">Vie</div>
-                <div class="calendar-day-header">Sáb</div>
-                <div class="calendar-day-header">Dom</div>
-            </div>
-            <div class="calendar-grid" id="calendar-days"></div>
-        </div>
-        <div class="card" id="day-detail-card" style="display:none;">
-            <div class="card-title" id="detail-date">Detalle del Día</div>
-            <p id="detail-info" style="font-size: 0.85rem; color: #cbd5e1;"></p>
-        </div>
-    </div>
-
-    <!-- TAB 3: HÁBITOS -->
-    <div id="tab-habits" class="tab-content">
-        <div class="card">
-            <div class="card-title">🧪 Creatina OstroVit (5g diarios)</div>
-            <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 12px;">
-                Tómala todos los días (idealmente post-entreno nocturno o en la mañana).
-            </p>
-            <button id="btn-creatine" class="btn btn-green" onclick="toggleCreatine()">Tomar 5g de Creatina Hoy</button>
-        </div>
-
-        <div class="card">
-            <div class="card-title">💧 Hidratación (Agua Pura)</div>
-            <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 10px;">Meta: 2.5 Litros al día (sin contar el mate)</p>
-            <h2 id="water-val" style="text-align: center; color: var(--accent); margin: 10px 0;">0.0 / 2.5 L</h2>
-            <div style="display: flex; gap: 8px;">
-                <button class="btn" onclick="addWater(0.25)">+ 250 ml</button>
-                <button class="btn" onclick="addWater(0.5)">+ 500 ml</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- TAB 4: ALIMENTACIÓN -->
-    <div id="tab-diet" class="tab-content">
-        <div class="card">
-            <div class="card-title">🥗 Plan de Alimentación (-3 kg)</div>
-            <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 15px;">Déficit moderado con alta proteína para proteger el músculo.</p>
-
-            <div class="meal-item">
-                <div class="meal-time">Desayuno</div>
-                <div class="meal-title">Mate + Huevo y Proteína</div>
-                <div class="meal-desc">Mate habitual + 2 huevos revueltos o duros + 1 rebanada de pan integral con palta o jamón.</div>
+    <!-- MAIN CONTAINER -->
+    <main class="flex-1 max-w-xl w-full mx-auto px-4">
+        
+        <!-- TAB 1: RUTINA -->
+        <section id="tab-workout" class="tab-content block space-y-4">
+            
+            <!-- Routine Header Card -->
+            <div class="bg-slate-800 border border-slate-700 rounded-xl p-4 shadow-sm">
+                <div class="flex justify-between items-center mb-2">
+                    <span id="routine-tag" class="font-bold text-lg text-sky-400">🏋️ Cargando Rutina...</span>
+                    <span class="text-xs bg-sky-950 text-sky-300 border border-sky-800 px-2 py-1 rounded-full">20-30 min</span>
+                </div>
+                <p id="routine-desc" class="text-xs text-slate-400 mb-4">Rotación dinámica cada 2 días.</p>
+                
+                <div class="grid grid-cols-2 gap-2 mb-4">
+                    <button onclick="startWorkout()" class="w-full bg-orange-600 hover:bg-orange-500 text-white font-bold py-3 px-4 rounded-lg shadow transition flex items-center justify-center gap-2 text-sm">
+                        <span>🚀 Iniciar Entrenamiento Guiado</span>
+                    </button>
+                    <button onclick="resetCurrentWorkoutSession()" class="w-full bg-slate-700 hover:bg-slate-600 text-slate-200 font-semibold py-3 px-4 rounded-lg border border-slate-600 transition text-sm flex items-center justify-center gap-1">
+                        <span>🔄 Reiniciar Rutina</span>
+                    </button>
+                </div>
+                <p class="text-[11px] text-amber-400/90 text-center italic">💡 ¡Puedes ver la técnica animada de cada ejercicio abajo antes de empezar!</p>
             </div>
 
-            <div class="meal-item">
-                <div class="meal-time">Almuerzo</div>
-                <div class="meal-title">Plato Equilibrado</div>
-                <div class="meal-desc">150g-180g de pechuga de pollo, carne magra o pescado + 1 taza de arroz/papas + abundante ensalada verde.</div>
+            <!-- Exercise Interactive Previews List -->
+            <div class="space-y-3">
+                <h3 class="text-sm font-bold text-slate-300 uppercase tracking-wider flex items-center gap-2">
+                    <span>👁️ Guía Visual de Ejercicios del Día</span>
+                </h3>
+                <div id="exercise-previews-container" class="space-y-3">
+                    <!-- Cards will be dynamically injected with embedded Canvas -->
+                </div>
             </div>
 
-            <div class="meal-item">
-                <div class="meal-time">Colación</div>
-                <div class="meal-title">Fruta o Yogur</div>
-                <div class="meal-desc">1 manzana o plátano mediano, o un yogur alto en proteína / puñado de frutos secos.</div>
+            <!-- Cardio Tracker Card -->
+            <div class="bg-slate-800 border border-slate-700 rounded-xl p-4 shadow-sm space-y-3 mt-6">
+                <h3 class="font-bold text-base text-slate-100 flex items-center gap-2">
+                    <span>🏃 Tracker de Cardio (Trote / Caminata)</span>
+                </h3>
+                <p class="text-xs text-slate-400">Registra tus kilómetros recorridos en el día:</p>
+                <div class="grid grid-cols-2 gap-2">
+                    <input type="number" id="cardio-dist" placeholder="Distancia (km) ej: 3.5" step="0.1" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-sm text-white focus:outline-none focus:border-sky-500">
+                    <input type="number" id="cardio-time" placeholder="Tiempo (min) ej: 30" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-sm text-white focus:outline-none focus:border-sky-500">
+                </div>
+                <button onclick="saveCardio()" class="w-full bg-sky-600 hover:bg-sky-500 text-white font-bold py-2.5 rounded-lg text-sm transition">
+                    Guardar Cardio
+                </button>
+                <div id="cardio-history" class="text-xs text-slate-400 pt-2 border-t border-slate-700/50"></div>
+            </div>
+        </section>
+
+        <!-- TAB 2: CALENDARIO DE AVANCE -->
+        <section id="tab-calendar" class="tab-content hidden space-y-4">
+            <div class="bg-slate-800 border border-slate-700 rounded-xl p-4 shadow-sm">
+                <h3 class="font-bold text-lg text-slate-100 mb-1">📅 Historial y Progreso Mensual</h3>
+                <p class="text-xs text-slate-400 mb-4">Los días verdes representan rutinas completadas con éxito.</p>
+
+                <div class="grid grid-cols-7 gap-1 text-center font-bold text-xs text-slate-400 mb-2">
+                    <div>Lun</div><div>Mar</div><div>Mié</div><div>Jue</div><div>Vie</div><div>Sáb</div><div>Dom</div>
+                </div>
+                <div class="grid grid-cols-7 gap-1 text-center text-xs" id="calendar-days"></div>
             </div>
 
-            <div class="meal-item">
-                <div class="meal-time">Cena (Post-Entrenamiento Nocturno)</div>
-                <div class="meal-title">Cena Ligera + Creatina</div>
-                <div class="meal-desc">Atún, pollo o tortillas de huevo con ensalada variada. Acompaña con tus 5g de creatina en agua.</div>
+            <div id="day-detail-card" class="bg-slate-800 border border-slate-700 rounded-xl p-4 shadow-sm hidden">
+                <h4 id="detail-date" class="font-bold text-sky-400 mb-2">Detalle del Día</h4>
+                <p id="detail-info" class="text-xs text-slate-300"></p>
             </div>
-        </div>
-    </div>
+        </section>
 
-    <!-- NAV BARS -->
-    <nav class="nav-tabs">
-        <button class="tab-btn active" onclick="switchTab('tab-workout', this)">🏋️<span>Rutina</span></button>
-        <button class="tab-btn" onclick="switchTab('tab-calendar', this)">📅<span>Avance</span></button>
-        <button class="tab-btn" onclick="switchTab('tab-habits', this)">🧪<span>Hábitos</span></button>
-        <button class="tab-btn" onclick="switchTab('tab-diet', this)">🥗<span>Dieta</span></button>
+        <!-- TAB 3: HÁBITOS -->
+        <section id="tab-habits" class="tab-content hidden space-y-4">
+            <!-- Creatine Tracker -->
+            <div class="bg-slate-800 border border-slate-700 rounded-xl p-4 shadow-sm">
+                <div class="flex justify-between items-center mb-2">
+                    <h3 class="font-bold text-slate-100">🧪 Creatina OstroVit (5g diarios)</h3>
+                    <span class="text-xs text-emerald-400 font-mono">5 Gramos/Día</span>
+                </div>
+                <p class="text-xs text-slate-400 mb-4">Tómala diariamente con agua suficiente. ¡Conserva la racha!</p>
+                <button id="btn-creatine" onclick="toggleCreatine()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3 rounded-lg text-sm transition">
+                    Tomar 5g de Creatina Hoy
+                </button>
+            </div>
+
+            <!-- Water Tracker -->
+            <div class="bg-slate-800 border border-slate-700 rounded-xl p-4 shadow-sm">
+                <h3 class="font-bold text-slate-100 mb-1">💧 Hidratación (Agua Pura)</h3>
+                <p class="text-xs text-slate-400 mb-3">Meta: 2.5 Litros al día (sin incluir bebidas o mate)</p>
+                <div class="text-center my-3">
+                    <span id="water-val" class="text-3xl font-extrabold text-sky-400">0.0 / 2.5 L</span>
+                </div>
+                <div class="grid grid-cols-2 gap-2">
+                    <button onclick="addWater(0.25)" class="bg-sky-900/60 hover:bg-sky-800 border border-sky-700 text-sky-200 font-semibold py-2 rounded-lg text-xs transition">+ 250 ml</button>
+                    <button onclick="addWater(0.50)" class="bg-sky-900/60 hover:bg-sky-800 border border-sky-700 text-sky-200 font-semibold py-2 rounded-lg text-xs transition">+ 500 ml</button>
+                </div>
+                <button onclick="resetWater()" class="w-full mt-2 text-[11px] text-slate-500 hover:text-slate-300">Reiniciar Agua de Hoy</button>
+            </div>
+        </section>
+
+        <!-- TAB 4: ALIMENTACIÓN -->
+        <section id="tab-diet" class="tab-content hidden space-y-4">
+            <div class="bg-slate-800 border border-slate-700 rounded-xl p-4 shadow-sm">
+                <h3 class="font-bold text-lg text-slate-100 mb-1">🥗 Plan de Alimentación (-3 kg)</h3>
+                <p class="text-xs text-slate-400 mb-4">Déficit calórico moderado priorizando la ingesta de proteína para mantener masa muscular.</p>
+
+                <div class="space-y-3">
+                    <div class="border-l-4 border-orange-500 pl-3 py-1">
+                        <span class="text-[10px] text-slate-400 uppercase tracking-wider font-semibold">Desayuno</span>
+                        <h4 class="font-bold text-sm text-slate-200">Mate + Huevo y Proteína</h4>
+                        <p class="text-xs text-slate-400 mt-0.5">Mate amargo + 2 huevos revueltos o duros + 1 rebanada de pan integral con palta o pechuga de pavo.</p>
+                    </div>
+
+                    <div class="border-l-4 border-sky-500 pl-3 py-1">
+                        <span class="text-[10px] text-slate-400 uppercase tracking-wider font-semibold">Almuerzo</span>
+                        <h4 class="font-bold text-sm text-slate-200">Plato Nutritivo Balanceado</h4>
+                        <p class="text-xs text-slate-400 mt-0.5">150g-180g pechuga de pollo, carne magra o pescado + 1 taza de arroz/camote + verduras/ensalada abundante.</p>
+                    </div>
+
+                    <div class="border-l-4 border-emerald-500 pl-3 py-1">
+                        <span class="text-[10px] text-slate-400 uppercase tracking-wider font-semibold">Colación</span>
+                        <h4 class="font-bold text-sm text-slate-200">Fruta o Yogur Proteico</h4>
+                        <p class="text-xs text-slate-400 mt-0.5">1 manzana o plátano mediano, o 1 yogur griego/alto en proteína con un puñado pequeño de frutos secos.</p>
+                    </div>
+
+                    <div class="border-l-4 border-purple-500 pl-3 py-1">
+                        <span class="text-[10px] text-slate-400 uppercase tracking-wider font-semibold">Cena (Post-Entrenamiento)</span>
+                        <h4 class="font-bold text-sm text-slate-200">Cena Ligera + Creatina</h4>
+                        <p class="text-xs text-slate-400 mt-0.5">Atún, fajitas de pollo o tortilla de espinacas con verdura fresca. Acompaña con tus 5g de creatina en agua pura.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- BOTTOM TAB NAVIGATION -->
+    <nav class="nav-tabs fixed bottom-0 left-0 right-0 border-t border-slate-700/80 z-40 flex justify-around">
+        <button onclick="switchTab('tab-workout', this)" class="tab-btn active flex-1 py-3 text-center text-sky-400 border-t-2 border-sky-400 flex flex-col items-center gap-1 font-semibold text-xs">
+            <span>🏋️</span><span>Rutina</span>
+        </button>
+        <button onclick="switchTab('tab-calendar', this)" class="tab-btn flex-1 py-3 text-center text-slate-400 hover:text-slate-200 flex flex-col items-center gap-1 text-xs">
+            <span>📅</span><span>Avance</span>
+        </button>
+        <button onclick="switchTab('tab-habits', this)" class="tab-btn flex-1 py-3 text-center text-slate-400 hover:text-slate-200 flex flex-col items-center gap-1 text-xs">
+            <span>🧪</span><span>Hábitos</span>
+        </button>
+        <button onclick="switchTab('tab-diet', this)" class="tab-btn flex-1 py-3 text-center text-slate-400 hover:text-slate-200 flex flex-col items-center gap-1 text-xs">
+            <span>🥗</span><span>Dieta</span></button>
     </nav>
 
-    <!-- PLAYER MODAL -->
-    <div id="player-modal">
-        <div>
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
-                <h3 id="ex-title" style="color: var(--accent);">Zancadas Inversas</h3>
-                <span id="ex-round" style="font-size: 0.85rem; color: var(--text-muted);">Ronda 1/4</span>
+    <!-- FULLSCREEN WORKOUT PLAYER MODAL -->
+    <div id="player-modal" class="fixed inset-0 bg-slate-950/95 z-50 flex-col justify-between p-4 sm:p-6 hidden">
+        
+        <!-- Top Bar -->
+        <div class="flex justify-between items-center border-b border-slate-800 pb-3">
+            <div>
+                <span id="player-routine-title" class="text-xs font-bold text-slate-400 uppercase tracking-wider">ENTRENAMIENTO GUIADO</span>
+                <h2 id="ex-title" class="text-xl font-black text-sky-400">Nombre del Ejercicio</h2>
             </div>
-            <div id="canvas-container">
-                <canvas id="animCanvas" width="300" height="240"></canvas>
-            </div>
-            <div class="timer-display" id="timer-val">00:45</div>
-            <div id="timer-status" style="text-align: center; color: var(--accent-orange); font-weight: bold; margin-bottom: 5px;">¡TRABAJO!</div>
-            <div class="progress-bar-bg">
-                <div class="progress-bar-fill" id="progress-fill"></div>
-            </div>
+            <span id="ex-round" class="text-xs font-bold bg-slate-800 border border-slate-700 text-sky-300 px-3 py-1.5 rounded-full">Ronda 1/4</span>
         </div>
-        <div style="display: flex; gap: 8px; flex-direction: column;">
-            <button class="btn btn-outline" onclick="restartWorkoutSession()">🔄 Volver a Empezar Rutina</button>
-            <button class="btn btn-orange" onclick="stopWorkout()">Cancelar Entrenamiento</button>
+
+        <!-- Canvas Container -->
+        <div class="my-auto py-2 flex flex-col items-center">
+            <div class="w-full max-w-sm h-56 bg-slate-900 border border-slate-700 rounded-xl overflow-hidden flex items-center justify-center relative shadow-2xl">
+                <canvas id="active-modal-canvas" width="300" height="220" class="w-full h-full object-contain"></canvas>
+            </div>
+            <p id="ex-desc" class="text-xs text-slate-300 text-center mt-3 max-w-sm px-2">Descripción de la técnica correcta para realizar este ejercicio.</p>
+        </div>
+
+        <!-- Timer & Controls -->
+        <div class="space-y-3 bg-slate-900/90 border border-slate-800 p-4 rounded-xl max-w-md mx-auto w-full">
+            <div id="timer-status" class="text-center text-xs font-bold uppercase tracking-widest text-orange-500">¡EN TRABAJO!</div>
+            
+            <div class="text-center">
+                <span id="timer-val" class="text-6xl font-black text-white font-mono tracking-wider">00:45</span>
+            </div>
+
+            <!-- Progress Bar -->
+            <div class="w-full bg-slate-800 h-3 rounded-full overflow-hidden border border-slate-700">
+                <div id="progress-fill" class="bg-sky-400 h-full w-0 transition-all duration-300 ease-linear"></div>
+            </div>
+
+            <!-- Buttons -->
+            <div class="grid grid-cols-2 gap-2 pt-2">
+                <button onclick="restartWorkoutSession()" class="bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-600 font-bold py-2.5 rounded-lg text-xs transition flex items-center justify-center gap-1">
+                    🔄 Reiniciar Rutina
+                </button>
+                <button onclick="stopWorkout()" class="bg-rose-900/80 hover:bg-rose-800 text-rose-200 border border-rose-700 font-bold py-2.5 rounded-lg text-xs transition">
+                    ❌ Cancelar
+                </button>
+            </div>
         </div>
     </div>
 
+    <!-- AUDIO EFFECTS (Web Audio API) & SCRIPT -->
     <script>
+        // --- TARGET COUNTDOWN ---
         const targetDate = new Date('2026-11-21T00:00:00');
-        const today = new Date();
-        const diffTime = Math.max(0, targetDate - today);
+        const now = new Date();
+        const diffTime = Math.max(0, targetDate - now);
         const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
         document.getElementById('days-left').innerText = diffDays;
 
-        function switchTab(tabId, btn) {
-            document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
-            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-            document.getElementById(tabId).classList.add('active');
-            btn.classList.add('active');
-            if (tabId === 'tab-calendar') renderCalendar();
-        }
-
-        let state = JSON.parse(localStorage.getItem('fitkettle_v4_state')) || {
+        // --- APP STATE ---
+        let state = JSON.parse(localStorage.getItem('fitkettle_v5_state')) || {
             creatineLastDate: null,
             creatineStreak: 0,
             water: 0,
@@ -240,62 +271,269 @@
         };
 
         function saveState() {
-            localStorage.setItem('fitkettle_v4_state', JSON.stringify(state));
+            localStorage.setItem('fitkettle_v5_state', JSON.stringify(state));
             updateUI();
         }
 
+        // --- ROUTINES DEFINITION ---
         const routines = {
             A: {
                 name: "Rutina Día A: Fuerza e Impacto",
-                desc: "4 Rondas | Enfoque en Piernas, Glúteos y Pecho",
+                desc: "4 Rondas | Piernas, Glúteos, Pecho y Espalda",
                 exercises: [
-                    { title: "Zancadas Inversas", desc: "Sostén la kettlebell al pecho. Da un paso largo atrás y baja la rodilla.", duration: 45, type: "lunge" },
-                    { title: "Puente de Glúteos", desc: "Acuéstate, apoya la pesa en la pelvis y eleva la cadera apretando glúteos.", duration: 45, type: "bridge" },
-                    { title: "Giros Rusos", desc: "Sentado, inclina el torso y gira la pesa de un lado a otro.", duration: 45, type: "twist" },
-                    { title: "Flexiones Asimétricas", desc: "Una mano en la pesa y otra en el suelo. Haz la flexión.", duration: 45, type: "pushup" },
-                    { title: "Remo a una Mano", desc: "Inclinado, eleva la pesa trayendo el codo hacia la cadera.", duration: 45, type: "row" }
+                    { title: "Zancadas Inversas", desc: "Sostén la kettlebell al pecho. Da un paso largo atrás bajando la rodilla con control.", duration: 45, type: "lunge" },
+                    { title: "Puente de Glúteos", desc: "Acostado boca arriba, apoya la kettlebell en la pelvis y eleva caderas con firmeza.", duration: 45, type: "bridge" },
+                    { title: "Giros Rusos", desc: "Sentado, inclina el torso levemente y rota la pesa de lado a lado contrayendo abdomen.", duration: 45, type: "twist" },
+                    { title: "Flexiones Asimétricas", desc: "Una mano sobre el asa de la pesa y la otra en el suelo. Haz flexión alternando lados.", duration: 45, type: "pushup" },
+                    { title: "Remo a una Mano", desc: "Inclina el torso 45°, eleva el codo jalando la pesa hacia la cadera sin rotar la espalda.", duration: 45, type: "row" }
                 ]
             },
             B: {
                 name: "Rutina Día B: Core y Dinamismo",
-                desc: "4 Rondas | Enfoque en Potencia, Hombros y Espalda",
+                desc: "4 Rondas | Potencia, Hombros y Cadera",
                 exercises: [
-                    { title: "Kettlebell Swings", desc: "Balancea la pesa entre las piernas e impúlsala con la cadera hasta los hombros.", duration: 45, type: "swing" },
-                    { title: "Sentadillas Goblet", desc: "Sostén la pesa al pecho y realiza una sentadilla profunda bajando la cadera.", duration: 45, type: "squat" },
-                    { title: "Peso Muerto", desc: "Mantén espalda recta y baja la pesa rozando las piernas hasta el piso.", duration: 45, type: "deadlift" },
-                    { title: "Press de Hombro", desc: "Empuja la kettlebell desde el hombro directamente sobre la cabeza.", duration: 45, type: "press" },
-                    { title: "Twist Ruso Dinámico", desc: "Rota el torso velozmente sosteniendo la pesa firmemente con ambas manos.", duration: 45, type: "twist" }
+                    { title: "Kettlebell Swings", desc: "Balancea la pesa desde la ingle impulsándote con la explosión de cadera.", duration: 45, type: "swing" },
+                    { title: "Sentadillas Goblet", desc: "Pesa pegada al pecho, baja caderas manteniendo espalda recta y rodillas alineadas.", duration: 45, type: "squat" },
+                    { title: "Peso Muerto", desc: "Flexiona cadera mandando glúteos atrás, rozando las piernas con la pesa hasta el piso.", duration: 45, type: "deadlift" },
+                    { title: "Press de Hombro", desc: "Pesa a la altura del hombro, empuja verticalmente sobre la cabeza con la zona media firme.", duration: 45, type: "press" },
+                    { title: "Twist Ruso Dinámico", desc: "Gira el torso manteniendo los talones suspendidos o apoyados en el suelo.", duration: 45, type: "twist" }
                 ]
             }
         };
 
-        const dayOfYear = Math.floor((today - new Date(today.getFullYear(), 0, 0)) / 1000 / 60 / 60 / 24);
-        const currentRoutineKey = (Math.floor(dayOfYear / 2) % 2 === 0) ? 'A' : 'B';
+        // Rotation: Change routine every 2 days
+        const startYearDay = Math.floor((now - new Date(now.getFullYear(), 0, 0)) / (1000 * 60 * 60 * 24));
+        const currentRoutineKey = (Math.floor(startYearDay / 2) % 2 === 0) ? 'A' : 'B';
         const activeRoutine = routines[currentRoutineKey];
 
+        // --- ANIMATION CANVAS ENGINE ---
+        // Animation global store for previews
+        let previewAnimFrames = [];
+        let previewPhases = [];
+
+        function renderHumanAnimation(ctx, canvasWidth, canvasHeight, phase, type) {
+            ctx.clearRect(0, 0, canvasWidth, canvasHeight);
+
+            // Helpers for drawing body parts
+            function drawLimb(x1, y1, x2, y2, width = 7, color = '#38bdf8') {
+                ctx.beginPath();
+                ctx.moveTo(x1, y1);
+                ctx.lineTo(x2, y2);
+                ctx.lineWidth = width;
+                ctx.strokeStyle = color;
+                ctx.lineCap = 'round';
+                ctx.stroke();
+            }
+
+            function drawKettlebell(x, y) {
+                // Bell Body
+                ctx.fillStyle = '#f97316';
+                ctx.beginPath();
+                ctx.arc(x, y + 5, 10, 0, Math.PI * 2);
+                ctx.fill();
+                // Bell Handle
+                ctx.strokeStyle = '#94a3b8';
+                ctx.lineWidth = 3;
+                ctx.beginPath();
+                ctx.arc(x, y - 3, 6, Math.PI, 0, false);
+                ctx.stroke();
+            }
+
+            function drawHead(x, y) {
+                ctx.fillStyle = '#38bdf8';
+                ctx.beginPath();
+                ctx.arc(x, y, 12, 0, Math.PI * 2);
+                ctx.fill();
+            }
+
+            const sin = Math.sin(phase);
+            const cx = canvasWidth / 2;
+            const cy = canvasHeight / 2 + 10;
+
+            if (type === 'lunge') {
+                const step = sin * 25;
+                const headY = cy - 50 + Math.abs(sin) * 10;
+                drawHead(cx, headY);
+                drawLimb(cx, headY + 12, cx, cy, 14); // Torso
+                // Legs
+                drawLimb(cx, cy, cx - 20 - step, cy + 30);
+                drawLimb(cx - 20 - step, cy + 30, cx - 20 - step, cy + 60);
+                drawLimb(cx, cy, cx + 20 + step, cy + 30);
+                drawLimb(cx + 20 + step, cy + 30, cx + 25 + step, cy + 60);
+                // Kettlebell at chest
+                drawKettlebell(cx, headY + 30);
+
+            } else if (type === 'bridge') {
+                const hipLift = Math.abs(sin) * 30;
+                const headX = cx - 60;
+                const headY = cy + 35;
+                drawHead(headX, headY);
+                drawLimb(headX + 10, headY, cx, cy + 35 - hipLift, 14); // Torso
+                drawLimb(cx, cy + 35 - hipLift, cx + 45, cy + 35); // Thighs
+                drawLimb(cx + 45, cy + 35, cx + 45, cy + 60); // Legs
+                drawKettlebell(cx - 10, cy + 20 - hipLift); // Kettlebell on hips
+
+            } else if (type === 'twist') {
+                const rot = sin * 35;
+                drawHead(cx, cy - 40);
+                drawLimb(cx, cy - 28, cx, cy + 15, 14); // Torso
+                drawLimb(cx, cy + 15, cx - 25, cy + 45); // Legs
+                drawLimb(cx, cy + 15, cx + 25, cy + 45);
+                drawLimb(cx, cy - 10, cx + rot, cy + 5, 6); // Arms holding KB
+                drawKettlebell(cx + rot, cy + 10);
+
+            } else if (type === 'pushup') {
+                const depth = Math.abs(sin) * 20;
+                const headX = cx - 40;
+                const headY = cy + depth;
+                drawHead(headX, headY);
+                drawLimb(headX + 10, headY + 5, cx + 50, cy + depth + 10, 14); // Body line
+                drawLimb(cx - 10, headY + 15, cx - 10, cy + 40, 6); // Arm on floor
+                drawLimb(cx + 15, headY + 15, cx + 15, cy + 30, 6); // Arm on KB
+                drawKettlebell(cx + 15, cy + 38);
+
+            } else if (type === 'row') {
+                const elbowY = cy - 20 - Math.abs(sin) * 25;
+                drawHead(cx - 20, cy - 35);
+                drawLimb(cx - 20, cy - 23, cx + 20, cy + 10, 14); // Incline torso
+                drawLimb(cx + 20, cy + 10, cx + 10, cy + 60); // Legs
+                drawLimb(cx + 20, cy + 10, cx + 30, cy + 60);
+                drawLimb(cx, cy - 10, cx + 10, elbowY, 6); // Arm rowing
+                drawKettlebell(cx + 10, elbowY + 15);
+
+            } else if (type === 'swing') {
+                const swingAngle = sin * 45;
+                const kbX = cx + Math.sin(swingAngle * Math.PI / 180) * 60;
+                const kbY = cy + Math.cos(swingAngle * Math.PI / 180) * 50 - 20;
+                drawHead(cx, cy - 45);
+                drawLimb(cx, cy - 33, cx, cy + 10, 14); // Torso
+                drawLimb(cx, cy + 10, cx - 18, cy + 60); // Legs
+                drawLimb(cx, cy + 10, cx + 18, cy + 60);
+                drawLimb(cx, cy - 15, kbX, kbY - 10, 6); // Arms
+                drawKettlebell(kbX, kbY);
+
+            } else if (type === 'squat') {
+                const depth = Math.abs(sin) * 35;
+                drawHead(cx, cy - 45 + depth);
+                drawLimb(cx, cy - 33 + depth, cx, cy + depth, 14); // Torso
+                drawLimb(cx, cy + depth, cx - 25, cy + depth + 25); // Thighs
+                drawLimb(cx - 25, cy + depth + 25, cx - 20, cy + 60); // Calves
+                drawLimb(cx, cy + depth, cx + 25, cy + depth + 25);
+                drawLimb(cx + 25, cy + depth + 25, cx + 20, cy + 60);
+                drawKettlebell(cx, cy - 10 + depth);
+
+            } else if (type === 'deadlift') {
+                const bend = Math.abs(sin) * 35;
+                const headX = cx - bend * 0.8;
+                const headY = cy - 40 + bend * 0.6;
+                drawHead(headX, headY);
+                drawLimb(headX, headY + 12, cx + 10, cy + 10, 14); // Torso bending
+                drawLimb(cx + 10, cy + 10, cx, cy + 60); // Legs straight
+                drawLimb(cx + 10, cy + 10, cx + 20, cy + 60);
+                drawLimb(headX + 10, headY + 15, cx - 5, cy + 20 + bend * 0.5, 6);
+                drawKettlebell(cx - 5, cy + 25 + bend * 0.5);
+
+            } else if (type === 'press') {
+                const pressY = cy - 30 - sin * 35;
+                drawHead(cx, cy - 40);
+                drawLimb(cx, cy - 28, cx, cy + 15, 14); // Torso
+                drawLimb(cx, cy + 15, cx - 18, cy + 60); // Legs
+                drawLimb(cx, cy + 15, cx + 18, cy + 60);
+                drawLimb(cx + 12, cy - 15, cx + 20, pressY + 15, 6); // Arm pressing
+                drawKettlebell(cx + 20, pressY);
+
+            } else {
+                // Rest stance
+                drawHead(cx, cy - 40);
+                drawLimb(cx, cy - 28, cx, cy + 15, 14);
+                drawLimb(cx, cy + 15, cx - 15, cy + 60);
+                drawLimb(cx, cy + 15, cx + 15, cy + 60);
+                drawKettlebell(cx, cy + 20);
+            }
+        }
+
+        // --- RENDER EXERCISE PREVIEWS ON MAIN TAB ---
         function loadRoutineUI() {
             document.getElementById('routine-tag').innerText = `🏋️ ${activeRoutine.name}`;
             document.getElementById('routine-desc').innerText = activeRoutine.desc;
-            const elList = document.getElementById('exercise-list');
-            elList.innerHTML = activeRoutine.exercises.map(ex => `<li><strong>${ex.title}</strong> (${ex.duration}s)</li>`).join('');
+
+            const container = document.getElementById('exercise-previews-container');
+            container.innerHTML = '';
+
+            // Cancel any old preview frames
+            previewAnimFrames.forEach(f => cancelAnimationFrame(f));
+            previewAnimFrames = [];
+            previewPhases = [];
+
+            activeRoutine.exercises.forEach((ex, idx) => {
+                const card = document.createElement('div');
+                card.className = "bg-slate-800 border border-slate-700/80 rounded-xl p-3 flex flex-col sm:flex-row gap-3 items-center shadow-md";
+
+                card.innerHTML = `
+                    <div class="canvas-card w-full sm:w-36 h-32 flex-shrink-0 flex items-center justify-center relative">
+                        <canvas id="preview-canvas-${idx}" width="180" height="130" class="w-full h-full object-contain"></canvas>
+                        <span class="absolute bottom-1 right-1 bg-slate-900/80 text-sky-400 text-[10px] px-1.5 py-0.5 rounded font-mono border border-slate-700">TÉCNICA</span>
+                    </div>
+                    <div class="flex-1 w-full space-y-1 text-left">
+                        <div class="flex justify-between items-start">
+                            <h4 class="font-bold text-sm text-sky-300">${idx + 1}. ${ex.title}</h4>
+                            <span class="text-[11px] bg-slate-900 text-orange-400 font-mono px-2 py-0.5 rounded border border-slate-700">${ex.duration} seg</span>
+                        </div>
+                        <p class="text-xs text-slate-300 leading-relaxed">${ex.desc}</p>
+                    </div>
+                `;
+                container.appendChild(card);
+
+                // Initialize Canvas Animation
+                previewPhases[idx] = Math.random() * Math.PI * 2;
+                function animatePreview() {
+                    const canvas = document.getElementById(`preview-canvas-${idx}`);
+                    if (canvas) {
+                        const ctx = canvas.getContext('2d');
+                        previewPhases[idx] += 0.05;
+                        renderHumanAnimation(ctx, canvas.width, canvas.height, previewPhases[idx], ex.type);
+                        previewAnimFrames[idx] = requestAnimationFrame(animatePreview);
+                    }
+                }
+                animatePreview();
+            });
         }
 
+        // --- NAVIGATION TABS ---
+        function switchTab(tabId, btn) {
+            document.querySelectorAll('.tab-content').forEach(t => t.classList.add('hidden'));
+            document.querySelectorAll('.tab-btn').forEach(b => {
+                b.classList.remove('active', 'text-sky-400', 'border-t-2', 'border-sky-400', 'font-semibold');
+                b.classList.add('text-slate-400');
+            });
+
+            document.getElementById(tabId).classList.remove('hidden');
+            btn.classList.add('active', 'text-sky-400', 'border-t-2', 'border-sky-400', 'font-semibold');
+            btn.classList.remove('text-slate-400');
+
+            if (tabId === 'tab-calendar') renderCalendar();
+        }
+
+        // --- HABITS & PERSISTENCE ---
         function updateUI() {
             const todayStr = new Date().toDateString();
             const btnC = document.getElementById('btn-creatine');
             if (state.creatineLastDate === todayStr) {
-                btnC.innerText = "✓ Creatina Tomada Hoy";
-                btnC.style.background = "#334155";
+                btnC.innerText = "✓ 5g Creatina Tomada Hoy";
+                btnC.className = "w-full bg-slate-700 text-slate-300 font-bold py-3 rounded-lg text-sm transition border border-slate-600";
             } else {
                 btnC.innerText = "Tomar 5g de Creatina Hoy";
-                btnC.style.background = "var(--accent-green)";
+                btnC.className = "w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3 rounded-lg text-sm transition";
             }
             document.getElementById('creatine-streak').innerText = `${state.creatineStreak} 🔥`;
             document.getElementById('water-val').innerText = `${state.water.toFixed(2)} / 2.5 L`;
 
             const ch = document.getElementById('cardio-history');
-            if (state.cardioHistory.length > 0) {
-                ch.innerHTML = "<strong>Últimos registros:</strong><br>" + state.cardioHistory.slice(-3).reverse().map(c => `• ${c.dist} km en ${c.time} min (${c.date})`).join('<br>');
+            if (state.cardioHistory && state.cardioHistory.length > 0) {
+                ch.innerHTML = "<strong>Últimos registros de cardio:</strong><br>" + 
+                    state.cardioHistory.slice(-3).reverse().map(c => `• ${c.dist} km en ${c.time} min (${c.date})`).join('<br>');
+            } else {
+                ch.innerText = "Sin registros de cardio aún.";
             }
         }
 
@@ -313,17 +551,25 @@
             saveState();
         }
 
+        function resetWater() {
+            state.water = 0;
+            saveState();
+        }
+
         function saveCardio() {
-            const dist = parseFloat(document.getElementById('cardio-dist').value);
-            const time = parseInt(document.getElementById('cardio-time').value);
+            const distInput = document.getElementById('cardio-dist');
+            const timeInput = document.getElementById('cardio-time');
+            const dist = parseFloat(distInput.value);
+            const time = parseInt(timeInput.value);
             if (dist && time) {
                 state.cardioHistory.push({ dist, time, date: new Date().toLocaleDateString() });
-                document.getElementById('cardio-dist').value = '';
-                document.getElementById('cardio-time').value = '';
+                distInput.value = '';
+                timeInput.value = '';
                 saveState();
             }
         }
 
+        // --- CALENDAR RENDERER ---
         function renderCalendar() {
             const calDays = document.getElementById('calendar-days');
             calDays.innerHTML = '';
@@ -331,12 +577,17 @@
             const daysInMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
             
             for (let d = 1; d <= daysInMonth; d++) {
-                const dateKey = `${now.getFullYear()}-${(now.getMonth()+1).toString().padStart(2,'0')}-${d.toString().padStart(2,'0')}`;
+                const monthStr = (now.getMonth() + 1).toString().padStart(2, '0');
+                const dayStr = d.toString().padStart(2, '0');
+                const dateKey = `${now.getFullYear()}-${monthStr}-${dayStr}`;
                 const isCompleted = !!state.workoutLog[dateKey];
                 const isToday = d === now.getDate();
 
                 const dayEl = document.createElement('div');
-                dayEl.className = `calendar-day ${isCompleted ? 'completed' : ''} ${isToday ? 'today' : ''}`;
+                dayEl.className = `p-2 rounded-lg border text-center cursor-pointer transition ${
+                    isCompleted ? 'bg-emerald-900/80 border-emerald-500 text-white font-bold' : 'bg-slate-900 border-slate-700 text-slate-400'
+                } ${isToday ? 'ring-2 ring-sky-400' : ''}`;
+                
                 dayEl.innerText = d;
                 dayEl.onclick = () => showDayDetail(dateKey, d);
                 calDays.appendChild(dayEl);
@@ -347,85 +598,107 @@
             const detailCard = document.getElementById('day-detail-card');
             const detailDate = document.getElementById('detail-date');
             const detailInfo = document.getElementById('detail-info');
-            detailCard.style.display = 'block';
-            detailDate.innerText = `Día ${dayNum} de este Mes`;
+            detailCard.classList.remove('hidden');
+            detailDate.innerText = `Detalle Día ${dayNum}`;
 
             if (state.workoutLog[dateKey]) {
                 const log = state.workoutLog[dateKey];
-                detailInfo.innerHTML = `✅ <strong>Completaste:</strong> ${log.name}<br>💪 ¡Excelente trabajo registrado!`;
+                detailInfo.innerHTML = `✅ <strong>Completaste:</strong> ${log.name}<br>💪 ¡Sesión registrada con éxito!`;
             } else {
-                detailInfo.innerText = "❌ Sin entrenamiento completado registrado en este día.";
+                detailInfo.innerText = "❌ No hay registro de entrenamiento completado para esta fecha.";
             }
         }
 
-        let workoutTimer = null;
+        // --- WORKOUT PLAYER & TIMER ENGINE ---
+        let workoutTimerInterval = null;
+        let activeModalAnimFrame = null;
+        let activeModalPhase = 0;
+        
         let currentExIdx = 0;
         let currentRound = 1;
         let isRest = false;
         let timeLeft = 0;
-        let totalTime = 0;
-        let animFrame = null;
-        let animPhase = 0;
+        let totalStepTime = 0;
 
         function resetCurrentWorkoutSession() {
-            clearInterval(workoutTimer);
+            stopWorkout();
             currentExIdx = 0;
             currentRound = 1;
             isRest = false;
-            alert("🔄 Rutina reiniciada. Está lista para empezar desde la Ronda 1.");
+            alert("🔄 Rutina reiniciada. Lista para comenzar desde el ejercicio 1.");
         }
 
         function restartWorkoutSession() {
-            clearInterval(workoutTimer);
+            clearInterval(workoutTimerInterval);
             currentExIdx = 0;
             currentRound = 1;
             isRest = false;
-            setupExercise();
-            startTimer();
+            setupWorkoutStep();
+            startTimerEngine();
         }
 
         function startWorkout() {
-            document.getElementById('player-modal').style.display = 'flex';
+            document.getElementById('player-modal').classList.remove('hidden');
+            document.getElementById('player-modal').classList.add('flex');
+            document.getElementById('player-routine-title').innerText = activeRoutine.name;
+
             currentExIdx = 0;
             currentRound = 1;
             isRest = false;
-            setupExercise();
-            startTimer();
-            startAnimation();
+
+            setupWorkoutStep();
+            startTimerEngine();
+            startActiveModalAnimation();
         }
 
         function stopWorkout() {
-            clearInterval(workoutTimer);
-            cancelAnimationFrame(animFrame);
-            document.getElementById('player-modal').style.display = 'none';
+            clearInterval(workoutTimerInterval);
+            cancelAnimationFrame(activeModalAnimFrame);
+            document.getElementById('player-modal').classList.add('hidden');
+            document.getElementById('player-modal').classList.remove('flex');
         }
 
-        function setupExercise() {
+        function setupWorkoutStep() {
             const exList = activeRoutine.exercises;
             const ex = exList[currentExIdx];
-            document.getElementById('ex-title').innerText = isRest ? "Descanso" : ex.title;
-            document.getElementById('ex-desc').innerText = isRest ? "Pausa, bebe agua y prepárate." : ex.desc;
+
+            if (isRest) {
+                document.getElementById('ex-title').innerText = "⏸️ DESCANSO";
+                document.getElementById('ex-desc').innerText = "Recupera el aliento, hidrátate y prepárate para el siguiente ejercicio.";
+                document.getElementById('timer-status').innerText = "DESCANSO ACTIVO";
+                document.getElementById('timer-status').className = "text-center text-xs font-bold uppercase tracking-widest text-emerald-400";
+                timeLeft = 15;
+            } else {
+                document.getElementById('ex-title').innerText = ex.title;
+                document.getElementById('ex-desc').innerText = ex.desc;
+                document.getElementById('timer-status').innerText = "¡EN TRABAJO!";
+                document.getElementById('timer-status').className = "text-center text-xs font-bold uppercase tracking-widest text-orange-500";
+                timeLeft = ex.duration;
+            }
+
             document.getElementById('ex-round').innerText = `Ronda ${currentRound}/4 - Ejercicio ${currentExIdx + 1}/${exList.length}`;
-            document.getElementById('timer-status').innerText = isRest ? "DESCANSO" : "¡A TRABAJAR!";
-            document.getElementById('timer-status').style.color = isRest ? "var(--accent-green)" : "var(--accent-orange)";
-            
-            timeLeft = isRest ? 15 : ex.duration;
-            totalTime = timeLeft;
+            totalStepTime = timeLeft;
+            updateTimerDisplay();
         }
 
-        function startTimer() {
-            clearInterval(workoutTimer);
-            workoutTimer = setInterval(() => {
+        function updateTimerDisplay() {
+            const mins = Math.floor(timeLeft / 60).toString().padStart(2, '0');
+            const secs = (timeLeft % 60).toString().padStart(2, '0');
+            document.getElementById('timer-val').innerText = `${mins}:${secs}`;
+            const pct = Math.min(100, Math.max(0, ((totalStepTime - timeLeft) / totalStepTime) * 100));
+            document.getElementById('progress-fill').style.width = `${pct}%`;
+        }
+
+        function startTimerEngine() {
+            clearInterval(workoutTimerInterval);
+            workoutTimerInterval = setInterval(() => {
                 timeLeft--;
-                const mins = Math.floor(timeLeft / 60).toString().padStart(2, '0');
-                const secs = (timeLeft % 60).toString().padStart(2, '0');
-                document.getElementById('timer-val').innerText = `${mins}:${secs}`;
-                document.getElementById('progress-fill').style.width = `${((totalTime - timeLeft) / totalTime) * 100}%`;
+                updateTimerDisplay();
 
                 if (timeLeft <= 0) {
                     if (!isRest) {
                         isRest = true;
-                        setupExercise();
+                        setupWorkoutStep();
                     } else {
                         isRest = false;
                         currentExIdx++;
@@ -434,126 +707,46 @@
                             currentRound++;
                         }
                         if (currentRound > 4) {
+                            // WORKOUT FINISHED!
                             const todayNow = new Date();
-                            const dateKey = `${todayNow.getFullYear()}-${(todayNow.getMonth()+1).toString().padStart(2,'0')}-${todayNow.getDate().toString().padStart(2,'0')}`;
+                            const monthStr = (todayNow.getMonth() + 1).toString().padStart(2, '0');
+                            const dayStr = todayNow.getDate().toString().padStart(2, '0');
+                            const dateKey = `${todayNow.getFullYear()}-${monthStr}-${dayStr}`;
+                            
                             state.workoutLog[dateKey] = { routine: currentRoutineKey, name: activeRoutine.name };
                             saveState();
 
-                            alert("🎉 ¡Entrenamiento Completo! Quedó registrado en tu calendario.");
+                            alert("🎉 ¡FELICITACIONES! Has completado las 4 rondas de la rutina. Guardado en el calendario.");
                             stopWorkout();
                             return;
                         }
-                        setupExercise();
+                        setupWorkoutStep();
                     }
                 }
             }, 1000);
         }
 
-        function startAnimation() {
-            const canvas = document.getElementById('animCanvas');
+        function startActiveModalAnimation() {
+            const canvas = document.getElementById('active-modal-canvas');
+            if (!canvas) return;
             const ctx = canvas.getContext('2d');
 
-            function drawBodyPart(x1, y1, x2, y2, width) {
-                ctx.beginPath();
-                ctx.moveTo(x1, y1);
-                ctx.lineTo(x2, y2);
-                ctx.lineWidth = width;
-                ctx.lineCap = 'round';
-                ctx.stroke();
-            }
-
-            function drawKettlebell(x, y) {
-                ctx.fillStyle = '#f97316';
-                ctx.strokeStyle = '#c2410c';
-                ctx.lineWidth = 2;
-                ctx.beginPath();
-                ctx.arc(x, y + 6, 11, 0, Math.PI * 2);
-                ctx.fill();
-                ctx.stroke();
-                ctx.beginPath();
-                ctx.arc(x, y - 2, 7, Math.PI, 0, false);
-                ctx.lineWidth = 3;
-                ctx.stroke();
-            }
-
-            function renderHuman(phase, type) {
-                ctx.clearRect(0, 0, canvas.width, canvas.height);
-                
-                const skin = '#38bdf8';
-                ctx.strokeStyle = skin;
-                ctx.fillStyle = skin;
-
-                const s = Math.sin(phase);
-                const cx = 150;
-                const cy = 130;
-
-                if (type === 'lunge') {
-                    const hipY = cy - 20 + s * 6;
-                    const headX = cx - 20;
-                    const headY = hipY - 60;
-                    
-                    ctx.beginPath(); ctx.arc(headX, headY, 13, 0, Math.PI * 2); ctx.fill();
-                    drawBodyPart(headX, headY + 13, headX + 5, hipY, 14);
-                    drawBodyPart(headX + 5, hipY, headX - 35, hipY + 30, 8);
-                    drawBodyPart(headX - 35, hipY + 30, headX - 35, hipY + 70, 7);
-                    drawBodyPart(headX + 5, hipY, headX + 45, hipY + 35, 8);
-                    drawBodyPart(headX + 45, hipY + 35, headX + 55, hipY + 70, 7);
-                    drawBodyPart(headX + 5, hipY - 35, headX - 10, hipY - 15, 7);
-                    drawKettlebell(headX - 10, hipY - 12);
-
-                } else if (type === 'bridge') {
-                    const floorY = cy + 50;
-                    const hipY = floorY - 30 - Math.abs(s) * 35;
-                    const headX = cx - 70;
-                    const headY = floorY - 20;
-
-                    ctx.beginPath(); ctx.arc(headX, headY, 13, 0, Math.PI * 2); ctx.fill();
-                    drawBodyPart(headX + 10, headY, cx, hipY, 14);
-                    drawBodyPart(cx, hipY, cx + 50, floorY, 8);
-                    drawKettlebell(cx, hipY - 10);
-
-                } else if (type === 'swing' || type === 'deadlift') {
-                    const lean = s * 25;
-                    const headX = cx - lean;
-                    const headY = cy - 50;
-                    const hipX = cx + lean * 0.4;
-                    const hipY = cy + 10;
-
-                    ctx.beginPath(); ctx.arc(headX, headY, 13, 0, Math.PI * 2); ctx.fill();
-                    drawBodyPart(headX, headY + 13, hipX, hipY, 14);
-                    drawBodyPart(hipX, hipY, hipX - 15, cy + 70, 8);
-                    drawBodyPart(hipX, hipY, hipX + 15, cy + 70, 8);
-
-                    const kbX = headX - 30 + s * 55;
-                    const kbY = hipY + 20 + Math.abs(s) * 30;
-                    drawBodyPart(headX, headY + 20, kbX, kbY, 6);
-                    drawKettlebell(kbX, kbY);
-
-                } else {
-                    const bodyY = cy - 10 + Math.abs(s) * 15;
-                    const headX = cx;
-                    const headY = bodyY - 55;
-
-                    ctx.beginPath(); ctx.arc(headX, headY, 13, 0, Math.PI * 2); ctx.fill();
-                    drawBodyPart(headX, headY + 13, headX, bodyY + 10, 14);
-                    drawBodyPart(headX, bodyY + 10, headX - 20, cy + 60, 8);
-                    drawBodyPart(headX, bodyY + 10, headX + 20, cy + 60, 8);
-                    drawKettlebell(headX + s * 25, bodyY - 10);
-                }
-            }
-
-            function draw() {
-                animPhase += 0.07;
+            function loop() {
+                activeModalPhase += 0.06;
                 const exList = activeRoutine.exercises;
                 const currentType = isRest ? 'rest' : exList[currentExIdx].type;
-                renderHuman(animPhase, currentType);
-                animFrame = requestAnimationFrame(draw);
+                
+                renderHumanAnimation(ctx, canvas.width, canvas.height, activeModalPhase, currentType);
+                activeModalAnimFrame = requestAnimationFrame(loop);
             }
-            draw();
+            loop();
         }
 
-        loadRoutineUI();
-        updateUI();
+        // Initial setup on window load
+        window.onload = function() {
+            loadRoutineUI();
+            updateUI();
+        };
     </script>
 </body>
 </html>
