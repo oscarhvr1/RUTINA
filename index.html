@@ -37,12 +37,19 @@
         
         /* Player Modal */
         #player-modal { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: var(--bg-primary); z-index: 200; padding: 20px; flex-direction: column; justify-content: space-between; }
-        #canvas-container { width: 100%; height: 240px; background: #020617; border-radius: 12px; display: flex; justify-content: center; align-items: center; overflow: hidden; border: 1px solid #334155; }
+        #canvas-container { width: 100%; height: 250px; background: #020617; border-radius: 12px; display: flex; justify-content: center; align-items: center; overflow: hidden; border: 1px solid #334155; }
         canvas { background: #020617; }
         .timer-display { font-size: 3.5rem; font-weight: bold; text-align: center; color: var(--accent); margin: 10px 0; }
         .progress-bar-bg { width: 100%; height: 10px; background: #334155; border-radius: 5px; overflow: hidden; }
         .progress-bar-fill { height: 100%; background: var(--accent); width: 0%; transition: width 0.3s linear; }
-        
+
+        /* Calendar Styles */
+        .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; margin-top: 10px; text-align: center; }
+        .calendar-day-header { font-size: 0.75rem; font-weight: bold; color: var(--text-muted); padding: 4px; }
+        .calendar-day { background: #0f172a; border: 1px solid #334155; border-radius: 6px; padding: 10px 2px; font-size: 0.85rem; position: relative; cursor: pointer; }
+        .calendar-day.completed { border-color: var(--accent-green); background: #064e3b; color: white; font-weight: bold; }
+        .calendar-day.today { border: 2px solid var(--accent); }
+
         /* Meal Plan */
         .meal-item { border-left: 3px solid var(--accent-orange); padding-left: 10px; margin-bottom: 12px; }
         .meal-time { font-size: 0.8rem; color: var(--text-muted); }
@@ -78,18 +85,14 @@
     <div id="tab-workout" class="tab-content active">
         <div class="card">
             <div class="card-title">
-                <span>🏋️ Circuito Kettlebell (1 Pesa)</span>
+                <span id="routine-tag">🏋️ Circuito Kettlebell</span>
                 <span style="font-size: 0.8rem; color: var(--accent);">20-30 min</span>
             </div>
-            <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 12px;">
-                4 Rondas | Pecho, Abdomen, Cintura, Glúteos y Piernas.
+            <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 12px;" id="routine-desc">
+                Rotación de 2 días.
             </p>
-            <ul style="font-size: 0.85rem; padding-left: 20px; color: #cbd5e1; margin-bottom: 15px;">
-                <li>Zancadas Inversas (10 rep/lado)</li>
-                <li>Puente de Glúteos con Carga (12-15 rep)</li>
-                <li>Giros Rusos / Russian Twist (16-20 rep)</li>
-                <li>Flexiones Asimétricas (6-8 rep/lado)</li>
-                <li>Remo a una Mano (10 rep/lado)</li>
+            <ul id="exercise-list" style="font-size: 0.85rem; padding-left: 20px; color: #cbd5e1; margin-bottom: 15px;">
+                <!-- Lista de ejercicios generada dinámicamente -->
             </ul>
             <button class="btn btn-orange" onclick="startWorkout()">🚀 Iniciar Entrenamiento Guiado</button>
         </div>
@@ -104,7 +107,33 @@
         </div>
     </div>
 
-    <!-- TAB 2: HÁBITOS -->
+    <!-- TAB 2: CALENDARIO DE AVANCE -->
+    <div id="tab-calendar" class="tab-content">
+        <div class="card">
+            <div class="card-title">📅 Historial de Entrenamientos</div>
+            <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 10px;">
+                Revisa tus días completados y el detalle de cada rutina:
+            </p>
+            <div class="calendar-grid">
+                <div class="calendar-day-header">Lun</div>
+                <div class="calendar-day-header">Mar</div>
+                <div class="calendar-day-header">Mié</div>
+                <div class="calendar-day-header">Jue</div>
+                <div class="calendar-day-header">Vie</div>
+                <div class="calendar-day-header">Sáb</div>
+                <div class="calendar-day-header">Dom</div>
+            </div>
+            <div class="calendar-grid" id="calendar-days">
+                <!-- Días del mes dinámicos -->
+            </div>
+        </div>
+        <div class="card" id="day-detail-card" style="display:none;">
+            <div class="card-title" id="detail-date">Detalle del Día</div>
+            <p id="detail-info" style="font-size: 0.85rem; color: #cbd5e1;"></p>
+        </div>
+    </div>
+
+    <!-- TAB 3: HÁBITOS -->
     <div id="tab-habits" class="tab-content">
         <div class="card">
             <div class="card-title">🧪 Creatina OstroVit (5g diarios)</div>
@@ -125,7 +154,7 @@
         </div>
     </div>
 
-    <!-- TAB 3: ALIMENTACIÓN -->
+    <!-- TAB 4: ALIMENTACIÓN -->
     <div id="tab-diet" class="tab-content">
         <div class="card">
             <div class="card-title">🥗 Plan de Alimentación (-3 kg)</div>
@@ -160,6 +189,7 @@
     <!-- NAV BARS -->
     <nav class="nav-tabs">
         <button class="tab-btn active" onclick="switchTab('tab-workout', this)">🏋️<span>Rutina</span></button>
+        <button class="tab-btn" onclick="switchTab('tab-calendar', this)">📅<span>Avance</span></button>
         <button class="tab-btn" onclick="switchTab('tab-habits', this)">🧪<span>Hábitos</span></button>
         <button class="tab-btn" onclick="switchTab('tab-diet', this)">🥗<span>Dieta</span></button>
     </nav>
@@ -172,7 +202,7 @@
                 <span id="ex-round" style="font-size: 0.85rem; color: var(--text-muted);">Ronda 1/4</span>
             </div>
             <div id="canvas-container">
-                <canvas id="animCanvas" width="300" height="220"></canvas>
+                <canvas id="animCanvas" width="300" height="230"></canvas>
             </div>
             <div class="timer-display" id="timer-val">00:45</div>
             <div id="timer-status" style="text-align: center; color: var(--accent-orange); font-weight: bold; margin-bottom: 8px;">¡TRABAJO!</div>
@@ -187,32 +217,70 @@
     </div>
 
     <script>
-        // Fecha meta: 21 de Noviembre de 2026
         const targetDate = new Date('2026-11-21T00:00:00');
         const today = new Date();
         const diffTime = Math.max(0, targetDate - today);
         const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
         document.getElementById('days-left').innerText = diffDays;
 
-        // Navegación
         function switchTab(tabId, btn) {
             document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
             document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
             document.getElementById(tabId).classList.add('active');
             btn.classList.add('active');
+            if (tabId === 'tab-calendar') renderCalendar();
         }
 
         // Estado persistente
-        let state = JSON.parse(localStorage.getItem('fitkettle_state')) || {
+        let state = JSON.parse(localStorage.getItem('fitkettle_v2_state')) || {
             creatineLastDate: null,
             creatineStreak: 0,
             water: 0,
-            cardioHistory: []
+            cardioHistory: [],
+            workoutLog: {} // 'YYYY-MM-DD': { routine: 'A', name: 'Rutina Día A' }
         };
 
         function saveState() {
-            localStorage.setItem('fitkettle_state', JSON.stringify(state));
+            localStorage.setItem('fitkettle_v2_state', JSON.stringify(state));
             updateUI();
+        }
+
+        // Rutinas Rotativas (A y B)
+        const routines = {
+            A: {
+                name: "Rutina Día A: Fuerza e Impacto",
+                desc: "4 Rondas | Enfoque en Piernas, Glúteos y Pecho",
+                exercises: [
+                    { title: "Zancadas Inversas", desc: "Sostén la kettlebell al pecho. Da un paso largo atrás y baja la rodilla.", duration: 45, type: "lunge" },
+                    { title: "Puente de Glúteos", desc: "Acuéstate, apoya la pesa en la pelvis y eleva la cadera apretando glúteos.", duration: 45, type: "bridge" },
+                    { title: "Giros Rusos", desc: "Sentado, inclina el torso y gira la pesa de un lado a otro.", duration: 45, type: "twist" },
+                    { title: "Flexiones Asimétricas", desc: "Una mano en la pesa y otra en el suelo. Haz la flexión.", duration: 45, type: "pushup" },
+                    { title: "Remo a una Mano", desc: "Inclinado, eleva la pesa trayendo el codo hacia la cadera.", duration: 45, type: "row" }
+                ]
+            },
+            B: {
+                name: "Rutina Día B: Core y Dinamismo",
+                desc: "4 Rondas | Enfoque en Potencia, Hombros y Espalda",
+                exercises: [
+                    { title: "Kettlebell Swings", desc: "Balancea la pesa entre las piernas e impúlsala con la cadera hasta los hombros.", duration: 45, type: "swing" },
+                    { title: "Sentadillas Goblet", desc: "Sostén la pesa al pecho y realiza una sentadilla profunda bajando la cadera.", duration: 45, type: "squat" },
+                    { title: "Peso Muerto", desc: "Mantén espalda recta y baja la pesa rozando las piernas hasta el piso.", duration: 45, type: "deadlift" },
+                    { title: "Press de Hombro", desc: "Empuja la kettlebell desde el hombro directamente sobre la cabeza.", duration: 45, type: "press" },
+                    { title: "Twist Ruso Dinámico", desc: "Rota el torso velozmente sosteniendo la pesa firmemente con ambas manos.", duration: 45, type: "twist" }
+                ]
+            }
+        };
+
+        // Selecciona automáticamente la rutina según el día del año (rotación cada 2 días)
+        const dayOfYear = Math.floor((today - new Date(today.getFullYear(), 0, 0)) / 1000 / 60 / 60 / 24);
+        const currentRoutineKey = (Math.floor(dayOfYear / 2) % 2 === 0) ? 'A' : 'B';
+        const activeRoutine = routines[currentRoutineKey];
+
+        function loadRoutineUI() {
+            document.getElementById('routine-tag').innerText = `🏋️ ${activeRoutine.name}`;
+            document.getElementById('routine-desc').innerText = activeRoutine.desc;
+            const elList = document.getElementById('exercise-list');
+            elList.innerHTML = activeRoutine.exercises.map(ex => `<li><strong>${ex.title}</strong> (${ex.duration}s)</li>`).join('');
         }
 
         function updateUI() {
@@ -252,24 +320,49 @@
             const dist = parseFloat(document.getElementById('cardio-dist').value);
             const time = parseInt(document.getElementById('cardio-time').value);
             if (dist && time) {
-                state.cardioHistory.push({
-                    dist, time, date: new Date().toLocaleDateString()
-                });
+                state.cardioHistory.push({ dist, time, date: new Date().toLocaleDateString() });
                 document.getElementById('cardio-dist').value = '';
                 document.getElementById('cardio-time').value = '';
                 saveState();
             }
         }
 
-        // Animación e Iteración de Ejercicios
-        const exercises = [
-            { title: "Zancadas Inversas", desc: "Sostén la pesa al pecho. Da un paso largo atrás y baja la rodilla.", duration: 45, type: "lunge" },
-            { title: "Puente de Glúteos", desc: "Acuéstate, apoya la pesa en la pelvis y eleva la cadera apretando glúteos.", duration: 45, type: "bridge" },
-            { title: "Giros Rusos", desc: "Sentado, inclina el torso y gira la pesa de un lado a otro tocando el suelo.", duration: 45, type: "twist" },
-            { title: "Flexiones Asimétricas", desc: "Una mano en la pesa y otra en el suelo. Haz la flexión y cambia de mano.", duration: 45, type: "pushup" },
-            { title: "Remo a una Mano", desc: "Espalda recta, eleva el codo rozando la costilla trayendo la pesa a la cadera.", duration: 45, type: "row" }
-        ];
+        // Render del Calendario
+        function renderCalendar() {
+            const calDays = document.getElementById('calendar-days');
+            calDays.innerHTML = '';
+            const now = new Date();
+            const daysInMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
+            
+            for (let d = 1; d <= daysInMonth; d++) {
+                const dateKey = `${now.getFullYear()}-${(now.getMonth()+1).toString().padStart(2,'0')}-${d.toString().padStart(2,'0')}`;
+                const isCompleted = !!state.workoutLog[dateKey];
+                const isToday = d === now.getDate();
 
+                const dayEl = document.createElement('div');
+                dayEl.className = `calendar-day ${isCompleted ? 'completed' : ''} ${isToday ? 'today' : ''}`;
+                dayEl.innerText = d;
+                dayEl.onclick = () => showDayDetail(dateKey, d);
+                calDays.appendChild(dayEl);
+            }
+        }
+
+        function showDayDetail(dateKey, dayNum) {
+            const detailCard = document.getElementById('day-detail-card');
+            const detailDate = document.getElementById('detail-date');
+            const detailInfo = document.getElementById('detail-info');
+            detailCard.style.display = 'block';
+            detailDate.innerText = `Día ${dayNum} de este Mes`;
+
+            if (state.workoutLog[dateKey]) {
+                const log = state.workoutLog[dateKey];
+                detailInfo.innerHTML = `✅ <strong>Completaste:</strong> ${log.name}<br>💪 ¡Excelente trabajo registrado!`;
+            } else {
+                detailInfo.innerText = "❌ Sin entrenamiento completado registrado en este día.";
+            }
+        }
+
+        // Temporizador y Dibujo Humano Realista
         let workoutTimer = null;
         let currentExIdx = 0;
         let currentRound = 1;
@@ -296,10 +389,11 @@
         }
 
         function setupExercise() {
-            const ex = exercises[currentExIdx];
+            const exList = activeRoutine.exercises;
+            const ex = exList[currentExIdx];
             document.getElementById('ex-title').innerText = isRest ? "Descanso" : ex.title;
-            document.getElementById('ex-desc').innerText = isRest ? "Pausa, bebe un poco de agua y prepárate para el siguiente." : ex.desc;
-            document.getElementById('ex-round').innerText = `Ronda ${currentRound}/4 - Ejercicio ${currentExIdx + 1}/5`;
+            document.getElementById('ex-desc').innerText = isRest ? "Pausa, bebe agua y prepárate." : ex.desc;
+            document.getElementById('ex-round').innerText = `Ronda ${currentRound}/4 - Ejercicio ${currentExIdx + 1}/${exList.length}`;
             document.getElementById('timer-status').innerText = isRest ? "DESCANSO" : "¡A TRABAJAR!";
             document.getElementById('timer-status').style.color = isRest ? "var(--accent-green)" : "var(--accent-orange)";
             
@@ -323,12 +417,18 @@
                     } else {
                         isRest = false;
                         currentExIdx++;
-                        if (currentExIdx >= exercises.length) {
+                        if (currentExIdx >= activeRoutine.exercises.length) {
                             currentExIdx = 0;
                             currentRound++;
                         }
                         if (currentRound > 4) {
-                            alert("🎉 ¡Entrenamiento Completo! Excelente trabajo.");
+                            // Registrar en el calendario
+                            const todayNow = new Date();
+                            const dateKey = `${todayNow.getFullYear()}-${(todayNow.getMonth()+1).toString().padStart(2,'0')}-${todayNow.getDate().toString().padStart(2,'0')}`;
+                            state.workoutLog[dateKey] = { routine: currentRoutineKey, name: activeRoutine.name };
+                            saveState();
+
+                            alert("🎉 ¡Entrenamiento Completo! Quedó registrado en tu calendario.");
                             stopWorkout();
                             return;
                         }
@@ -338,42 +438,84 @@
             }, 1000);
         }
 
+        // MOTOR DE DIBUJO HUMANO EN CANVAS
         function startAnimation() {
             const canvas = document.getElementById('animCanvas');
             const ctx = canvas.getContext('2d');
 
-            function draw() {
+            function drawHuman(cx, cy, phase, type) {
                 ctx.clearRect(0, 0, canvas.width, canvas.height);
-                animAngle += 0.05;
-                const offset = Math.sin(animAngle) * 15;
+                ctx.lineWidth = 6;
+                ctx.lineCap = 'round';
+                ctx.lineJoin = 'round';
+                
+                const skinColor = '#38bdf8';
+                const kettleColor = '#f97316';
 
-                ctx.strokeStyle = "#38bdf8";
-                ctx.lineWidth = 4;
-                ctx.fillStyle = "#f97316";
+                ctx.strokeStyle = skinColor;
+                ctx.fillStyle = skinColor;
 
-                const exType = exercises[currentExIdx].type;
+                const sin = Math.sin(phase);
 
-                if (exType === 'lunge') {
-                    ctx.beginPath(); ctx.arc(150, 60, 12, 0, Math.PI * 2); ctx.stroke();
-                    ctx.beginPath(); ctx.moveTo(150, 72); ctx.lineTo(150, 130 + offset/2); ctx.stroke();
-                    ctx.beginPath(); ctx.moveTo(150, 130 + offset/2); ctx.lineTo(120, 180); ctx.stroke();
-                    ctx.beginPath(); ctx.moveTo(150, 130 + offset/2); ctx.lineTo(180, 180 - offset); ctx.stroke();
-                    ctx.beginPath(); ctx.arc(150, 95, 10, 0, Math.PI * 2); ctx.fill();
-                } else if (exType === 'bridge') {
-                    ctx.beginPath(); ctx.moveTo(50, 180); ctx.lineTo(250, 180); ctx.stroke();
-                    ctx.beginPath(); ctx.moveTo(80, 170); ctx.lineTo(150, 130 - Math.abs(offset)); ctx.lineTo(220, 170); ctx.stroke();
-                    ctx.beginPath(); ctx.arc(150, 120 - Math.abs(offset), 10, 0, Math.PI * 2); ctx.fill();
+                if (type === 'lunge') {
+                    // Zancada Humana
+                    const headY = cy - 70 + sin * 10;
+                    ctx.beginPath(); ctx.arc(cx, headY, 14, 0, Math.PI * 2); ctx.fill(); // Cabeza
+                    ctx.beginPath(); ctx.moveTo(cx, headY + 14); ctx.lineTo(cx, headY + 60); ctx.stroke(); // Torso
+                    // Pierna Delantera
+                    ctx.beginPath(); ctx.moveTo(cx, headY + 60); ctx.lineTo(cx - 30, headY + 90); ctx.lineTo(cx - 30, headY + 120); ctx.stroke();
+                    // Pierna Trasera
+                    ctx.beginPath(); ctx.moveTo(cx, headY + 60); ctx.lineTo(cx + 40, headY + 85); ctx.lineTo(cx + 50, headY + 120); ctx.stroke();
+                    // Pesa Rusa al Pecho
+                    ctx.fillStyle = kettleColor;
+                    ctx.beginPath(); ctx.arc(cx - 10, headY + 35, 12, 0, Math.PI * 2); ctx.fill();
+                } else if (type === 'swing') {
+                    // Swing de Kettlebell
+                    const headX = cx - sin * 20;
+                    const headY = cy - 60;
+                    ctx.beginPath(); ctx.arc(headX, headY, 14, 0, Math.PI * 2); ctx.fill(); // Cabeza
+                    ctx.beginPath(); ctx.moveTo(headX, headY + 14); ctx.lineTo(cx, cy + 10); ctx.stroke(); // Torso
+                    // Piernas
+                    ctx.beginPath(); ctx.moveTo(cx, cy + 10); ctx.lineTo(cx - 20, cy + 70); ctx.stroke();
+                    ctx.beginPath(); ctx.moveTo(cx, cy + 10); ctx.lineTo(cx + 20, cy + 70); ctx.stroke();
+                    // Brazos y Pesa elevándose
+                    const kbX = cx + sin * 60;
+                    const kbY = cy - 10 - sin * 30;
+                    ctx.beginPath(); ctx.moveTo(headX, headY + 25); ctx.lineTo(kbX, kbY); ctx.stroke();
+                    ctx.fillStyle = kettleColor;
+                    ctx.beginPath(); ctx.arc(kbX, kbY, 14, 0, Math.PI * 2); ctx.fill();
+                } else if (type === 'bridge') {
+                    // Puente de Glúteos
+                    ctx.beginPath(); ctx.arc(cx - 70, cy + 40, 12, 0, Math.PI * 2); ctx.fill(); // Cabeza
+                    const hipY = cy + 10 - Math.abs(sin) * 35;
+                    ctx.beginPath(); ctx.moveTo(cx - 60, cy + 40); ctx.lineTo(cx, hipY); ctx.stroke(); // Torso elevándose
+                    ctx.beginPath(); ctx.moveTo(cx, hipY); ctx.lineTo(cx + 40, cy + 40); ctx.stroke(); // Piernas
+                    // Pesa sobre la cadera
+                    ctx.fillStyle = kettleColor;
+                    ctx.beginPath(); ctx.arc(cx, hipY - 12, 13, 0, Math.PI * 2); ctx.fill();
                 } else {
-                    ctx.beginPath(); ctx.arc(150, 80, 12, 0, Math.PI * 2); ctx.stroke();
-                    ctx.beginPath(); ctx.moveTo(150, 92); ctx.lineTo(150, 140); ctx.stroke();
-                    ctx.beginPath(); ctx.arc(150 + offset, 120, 10, 0, Math.PI * 2); ctx.fill();
+                    // Figura Humana Estándar en Sentadilla / Movimiento
+                    const bodyY = cy - 30 + Math.abs(sin) * 20;
+                    ctx.beginPath(); ctx.arc(cx, bodyY - 40, 14, 0, Math.PI * 2); ctx.fill();
+                    ctx.beginPath(); ctx.moveTo(cx, bodyY - 26); ctx.lineTo(cx, bodyY + 30); ctx.stroke();
+                    ctx.beginPath(); ctx.moveTo(cx, bodyY + 30); ctx.lineTo(cx - 25, cy + 70); ctx.stroke();
+                    ctx.beginPath(); ctx.moveTo(cx, bodyY + 30); ctx.lineTo(cx + 25, cy + 70); ctx.stroke();
+                    ctx.fillStyle = kettleColor;
+                    ctx.beginPath(); ctx.arc(cx, bodyY + 5, 12, 0, Math.PI * 2); ctx.fill();
                 }
+            }
 
+            function draw() {
+                animAngle += 0.06;
+                const exList = activeRoutine.exercises;
+                const currentType = isRest ? 'rest' : exList[currentExIdx].type;
+                drawHuman(150, 110, animAngle, currentType);
                 animFrame = requestAnimationFrame(draw);
             }
             draw();
         }
 
+        loadRoutineUI();
         updateUI();
     </script>
 </body>
