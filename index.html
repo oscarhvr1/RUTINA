@@ -1,752 +1,930 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="es" class="h-full bg-slate-950 text-slate-100">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FitKettle 3k - Desafío 21 Nov</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-        :root {
-            --bg-primary: #0f172a;
-            --bg-card: #1e293b;
-            --accent: #38bdf8;
-            --accent-orange: #f97316;
-            --accent-green: #10b981;
-            --text-main: #f8fafc;
-            --text-muted: #94a3b8;
-        }
-        body {
-            background-color: var(--bg-primary);
-            color: var(--text-main);
-            font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-            padding-bottom: 90px;
-        }
-        .canvas-card {
-            background: #020617;
-            border-radius: 8px;
-            border: 1px solid #334155;
-        }
-        /* Tab navigation bottom bar styling */
-        .nav-tabs {
-            background: rgba(30, 41, 59, 0.95);
-            backdrop-filter: blur(10px);
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>FitKettle 3k - Kettlebell Workout & Tracker</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap');
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .custom-scrollbar::-webkit-scrollbar {
+      width: 6px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-track {
+      background: rgba(15, 23, 42, 0.6);
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+      background: #334155;
+      border-radius: 9999px;
+    }
+    @keyframes pulseGlow {
+      0%, 100% { box-shadow: 0 0 15px rgba(249, 115, 22, 0.3); }
+      50% { box-shadow: 0 0 25px rgba(249, 115, 22, 0.6); }
+    }
+    .active-glow {
+      animation: pulseGlow 2s infinite;
+    }
+  </style>
 </head>
-<body class="min-h-screen flex flex-col">
+<body class="h-full flex flex-col justify-between overflow-x-hidden bg-slate-950 text-slate-100 select-none">
 
-    <!-- Header -->
-    <header class="bg-slate-900 border-b border-slate-700 p-4 text-center sticky top-0 z-30 shadow-lg">
-        <h1 class="text-2xl font-black text-sky-400 tracking-wide">FITKETTLE 3K</h1>
-        <p class="text-xs text-slate-400 mt-1">Rutina Kettlebell + Cardio + Creatina (-3kg al 21 Nov)</p>
-    </header>
-
-    <!-- Countdown & Stats Banner -->
-    <div class="m-4 p-4 bg-indigo-950/80 border border-indigo-700/50 rounded-xl shadow-md grid grid-cols-3 gap-2 text-center">
-        <div class="flex flex-col">
-            <span class="text-xl font-bold text-orange-500" id="days-left">--</span>
-            <span class="text-[10px] sm:text-xs text-slate-400 uppercase font-semibold">Días Restantes</span>
-        </div>
-        <div class="flex flex-col border-x border-indigo-800/60">
-            <span class="text-xl font-bold text-emerald-400">-3.0 kg</span>
-            <span class="text-[10px] sm:text-xs text-slate-400 uppercase font-semibold">Meta Peso</span>
-        </div>
-        <div class="flex flex-col">
-            <span class="text-xl font-bold text-orange-400" id="creatine-streak">0 🔥</span>
-            <span class="text-[10px] sm:text-xs text-slate-400 uppercase font-semibold">Racha Creatina</span>
-        </div>
+  <!-- TOP HEADER -->
+  <header class="sticky top-0 z-30 bg-slate-900/90 backdrop-blur-md border-b border-slate-800/80 px-4 py-3 flex items-center justify-between shadow-lg">
+    <div class="flex items-center gap-2">
+      <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-orange-600 to-amber-500 flex items-center justify-center text-white shadow-md shadow-orange-500/20">
+        <i class="fa-solid fa-dumbbell text-lg"></i>
+      </div>
+      <div>
+        <h1 class="font-extrabold text-base tracking-tight leading-none text-white">FitKettle <span class="text-orange-500">3k</span></h1>
+        <p class="text-[10px] text-slate-400 font-medium">Meta -3kg • 21 Nov 2026</p>
+      </div>
     </div>
+    
+    <!-- Streak & Creatine Quick Status -->
+    <div class="flex items-center gap-2">
+      <div class="bg-slate-800/80 border border-slate-700/60 rounded-lg px-2.5 py-1 flex items-center gap-1.5 text-xs font-semibold">
+        <i class="fa-solid fa-fire text-orange-500"></i>
+        <span id="streakCount">0</span>d
+      </div>
+      <button onclick="switchTab('creatine')" class="bg-slate-800/80 border border-slate-700/60 rounded-lg px-2 py-1 flex items-center gap-1 text-xs font-semibold text-sky-400 hover:bg-slate-700/60 transition">
+        <i class="fa-solid fa-flask"></i>
+        <span id="creatineBadgeHeader">5g</span>
+      </button>
+    </div>
+  </header>
 
-    <!-- MAIN CONTAINER -->
-    <main class="flex-1 max-w-xl w-full mx-auto px-4">
-        
-        <!-- TAB 1: RUTINA -->
-        <section id="tab-workout" class="tab-content block space-y-4">
-            
-            <!-- Routine Header Card -->
-            <div class="bg-slate-800 border border-slate-700 rounded-xl p-4 shadow-sm">
-                <div class="flex justify-between items-center mb-2">
-                    <span id="routine-tag" class="font-bold text-lg text-sky-400">🏋️ Cargando Rutina...</span>
-                    <span class="text-xs bg-sky-950 text-sky-300 border border-sky-800 px-2 py-1 rounded-full">20-30 min</span>
-                </div>
-                <p id="routine-desc" class="text-xs text-slate-400 mb-4">Rotación dinámica cada 2 días.</p>
-                
-                <div class="grid grid-cols-2 gap-2 mb-4">
-                    <button onclick="startWorkout()" class="w-full bg-orange-600 hover:bg-orange-500 text-white font-bold py-3 px-4 rounded-lg shadow transition flex items-center justify-center gap-2 text-sm">
-                        <span>🚀 Iniciar Entrenamiento Guiado</span>
-                    </button>
-                    <button onclick="resetCurrentWorkoutSession()" class="w-full bg-slate-700 hover:bg-slate-600 text-slate-200 font-semibold py-3 px-4 rounded-lg border border-slate-600 transition text-sm flex items-center justify-center gap-1">
-                        <span>🔄 Reiniciar Rutina</span>
-                    </button>
-                </div>
-                <p class="text-[11px] text-amber-400/90 text-center italic">💡 ¡Puedes ver la técnica animada de cada ejercicio abajo antes de empezar!</p>
-            </div>
+  <!-- MAIN CONTENT CONTAINER -->
+  <main class="flex-1 overflow-y-auto custom-scrollbar p-4 max-w-lg mx-auto w-full pb-24">
 
-            <!-- Exercise Interactive Previews List -->
-            <div class="space-y-3">
-                <h3 class="text-sm font-bold text-slate-300 uppercase tracking-wider flex items-center gap-2">
-                    <span>👁️ Guía Visual de Ejercicios del Día</span>
-                </h3>
-                <div id="exercise-previews-container" class="space-y-3">
-                    <!-- Cards will be dynamically injected with embedded Canvas -->
-                </div>
-            </div>
-
-            <!-- Cardio Tracker Card -->
-            <div class="bg-slate-800 border border-slate-700 rounded-xl p-4 shadow-sm space-y-3 mt-6">
-                <h3 class="font-bold text-base text-slate-100 flex items-center gap-2">
-                    <span>🏃 Tracker de Cardio (Trote / Caminata)</span>
-                </h3>
-                <p class="text-xs text-slate-400">Registra tus kilómetros recorridos en el día:</p>
-                <div class="grid grid-cols-2 gap-2">
-                    <input type="number" id="cardio-dist" placeholder="Distancia (km) ej: 3.5" step="0.1" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-sm text-white focus:outline-none focus:border-sky-500">
-                    <input type="number" id="cardio-time" placeholder="Tiempo (min) ej: 30" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-sm text-white focus:outline-none focus:border-sky-500">
-                </div>
-                <button onclick="saveCardio()" class="w-full bg-sky-600 hover:bg-sky-500 text-white font-bold py-2.5 rounded-lg text-sm transition">
-                    Guardar Cardio
-                </button>
-                <div id="cardio-history" class="text-xs text-slate-400 pt-2 border-t border-slate-700/50"></div>
-            </div>
-        </section>
-
-        <!-- TAB 2: CALENDARIO DE AVANCE -->
-        <section id="tab-calendar" class="tab-content hidden space-y-4">
-            <div class="bg-slate-800 border border-slate-700 rounded-xl p-4 shadow-sm">
-                <h3 class="font-bold text-lg text-slate-100 mb-1">📅 Historial y Progreso Mensual</h3>
-                <p class="text-xs text-slate-400 mb-4">Los días verdes representan rutinas completadas con éxito.</p>
-
-                <div class="grid grid-cols-7 gap-1 text-center font-bold text-xs text-slate-400 mb-2">
-                    <div>Lun</div><div>Mar</div><div>Mié</div><div>Jue</div><div>Vie</div><div>Sáb</div><div>Dom</div>
-                </div>
-                <div class="grid grid-cols-7 gap-1 text-center text-xs" id="calendar-days"></div>
-            </div>
-
-            <div id="day-detail-card" class="bg-slate-800 border border-slate-700 rounded-xl p-4 shadow-sm hidden">
-                <h4 id="detail-date" class="font-bold text-sky-400 mb-2">Detalle del Día</h4>
-                <p id="detail-info" class="text-xs text-slate-300"></p>
-            </div>
-        </section>
-
-        <!-- TAB 3: HÁBITOS -->
-        <section id="tab-habits" class="tab-content hidden space-y-4">
-            <!-- Creatine Tracker -->
-            <div class="bg-slate-800 border border-slate-700 rounded-xl p-4 shadow-sm">
-                <div class="flex justify-between items-center mb-2">
-                    <h3 class="font-bold text-slate-100">🧪 Creatina OstroVit (5g diarios)</h3>
-                    <span class="text-xs text-emerald-400 font-mono">5 Gramos/Día</span>
-                </div>
-                <p class="text-xs text-slate-400 mb-4">Tómala diariamente con agua suficiente. ¡Conserva la racha!</p>
-                <button id="btn-creatine" onclick="toggleCreatine()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3 rounded-lg text-sm transition">
-                    Tomar 5g de Creatina Hoy
-                </button>
-            </div>
-
-            <!-- Water Tracker -->
-            <div class="bg-slate-800 border border-slate-700 rounded-xl p-4 shadow-sm">
-                <h3 class="font-bold text-slate-100 mb-1">💧 Hidratación (Agua Pura)</h3>
-                <p class="text-xs text-slate-400 mb-3">Meta: 2.5 Litros al día (sin incluir bebidas o mate)</p>
-                <div class="text-center my-3">
-                    <span id="water-val" class="text-3xl font-extrabold text-sky-400">0.0 / 2.5 L</span>
-                </div>
-                <div class="grid grid-cols-2 gap-2">
-                    <button onclick="addWater(0.25)" class="bg-sky-900/60 hover:bg-sky-800 border border-sky-700 text-sky-200 font-semibold py-2 rounded-lg text-xs transition">+ 250 ml</button>
-                    <button onclick="addWater(0.50)" class="bg-sky-900/60 hover:bg-sky-800 border border-sky-700 text-sky-200 font-semibold py-2 rounded-lg text-xs transition">+ 500 ml</button>
-                </div>
-                <button onclick="resetWater()" class="w-full mt-2 text-[11px] text-slate-500 hover:text-slate-300">Reiniciar Agua de Hoy</button>
-            </div>
-        </section>
-
-        <!-- TAB 4: ALIMENTACIÓN -->
-        <section id="tab-diet" class="tab-content hidden space-y-4">
-            <div class="bg-slate-800 border border-slate-700 rounded-xl p-4 shadow-sm">
-                <h3 class="font-bold text-lg text-slate-100 mb-1">🥗 Plan de Alimentación (-3 kg)</h3>
-                <p class="text-xs text-slate-400 mb-4">Déficit calórico moderado priorizando la ingesta de proteína para mantener masa muscular.</p>
-
-                <div class="space-y-3">
-                    <div class="border-l-4 border-orange-500 pl-3 py-1">
-                        <span class="text-[10px] text-slate-400 uppercase tracking-wider font-semibold">Desayuno</span>
-                        <h4 class="font-bold text-sm text-slate-200">Mate + Huevo y Proteína</h4>
-                        <p class="text-xs text-slate-400 mt-0.5">Mate amargo + 2 huevos revueltos o duros + 1 rebanada de pan integral con palta o pechuga de pavo.</p>
-                    </div>
-
-                    <div class="border-l-4 border-sky-500 pl-3 py-1">
-                        <span class="text-[10px] text-slate-400 uppercase tracking-wider font-semibold">Almuerzo</span>
-                        <h4 class="font-bold text-sm text-slate-200">Plato Nutritivo Balanceado</h4>
-                        <p class="text-xs text-slate-400 mt-0.5">150g-180g pechuga de pollo, carne magra o pescado + 1 taza de arroz/camote + verduras/ensalada abundante.</p>
-                    </div>
-
-                    <div class="border-l-4 border-emerald-500 pl-3 py-1">
-                        <span class="text-[10px] text-slate-400 uppercase tracking-wider font-semibold">Colación</span>
-                        <h4 class="font-bold text-sm text-slate-200">Fruta o Yogur Proteico</h4>
-                        <p class="text-xs text-slate-400 mt-0.5">1 manzana o plátano mediano, o 1 yogur griego/alto en proteína con un puñado pequeño de frutos secos.</p>
-                    </div>
-
-                    <div class="border-l-4 border-purple-500 pl-3 py-1">
-                        <span class="text-[10px] text-slate-400 uppercase tracking-wider font-semibold">Cena (Post-Entrenamiento)</span>
-                        <h4 class="font-bold text-sm text-slate-200">Cena Ligera + Creatina</h4>
-                        <p class="text-xs text-slate-400 mt-0.5">Atún, fajitas de pollo o tortilla de espinacas con verdura fresca. Acompaña con tus 5g de creatina en agua pura.</p>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-    </main>
-
-    <!-- BOTTOM TAB NAVIGATION -->
-    <nav class="nav-tabs fixed bottom-0 left-0 right-0 border-t border-slate-700/80 z-40 flex justify-around">
-        <button onclick="switchTab('tab-workout', this)" class="tab-btn active flex-1 py-3 text-center text-sky-400 border-t-2 border-sky-400 flex flex-col items-center gap-1 font-semibold text-xs">
-            <span>🏋️</span><span>Rutina</span>
-        </button>
-        <button onclick="switchTab('tab-calendar', this)" class="tab-btn flex-1 py-3 text-center text-slate-400 hover:text-slate-200 flex flex-col items-center gap-1 text-xs">
-            <span>📅</span><span>Avance</span>
-        </button>
-        <button onclick="switchTab('tab-habits', this)" class="tab-btn flex-1 py-3 text-center text-slate-400 hover:text-slate-200 flex flex-col items-center gap-1 text-xs">
-            <span>🧪</span><span>Hábitos</span>
-        </button>
-        <button onclick="switchTab('tab-diet', this)" class="tab-btn flex-1 py-3 text-center text-slate-400 hover:text-slate-200 flex flex-col items-center gap-1 text-xs">
-            <span>🥗</span><span>Dieta</span></button>
-    </nav>
-
-    <!-- FULLSCREEN WORKOUT PLAYER MODAL -->
-    <div id="player-modal" class="fixed inset-0 bg-slate-950/95 z-50 flex-col justify-between p-4 sm:p-6 hidden">
-        
-        <!-- Top Bar -->
-        <div class="flex justify-between items-center border-b border-slate-800 pb-3">
-            <div>
-                <span id="player-routine-title" class="text-xs font-bold text-slate-400 uppercase tracking-wider">ENTRENAMIENTO GUIADO</span>
-                <h2 id="ex-title" class="text-xl font-black text-sky-400">Nombre del Ejercicio</h2>
-            </div>
-            <span id="ex-round" class="text-xs font-bold bg-slate-800 border border-slate-700 text-sky-300 px-3 py-1.5 rounded-full">Ronda 1/4</span>
+    <!-- TAB 1: ROUTINE & ANIMATED PREVIEW -->
+    <section id="tab-routine" class="tab-content space-y-4">
+      
+      <!-- Canvas Preview Header Card -->
+      <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-4 shadow-xl relative overflow-hidden">
+        <div class="flex justify-between items-center mb-3">
+          <div>
+            <span class="text-xs font-bold uppercase tracking-wider text-orange-400 bg-orange-500/10 px-2 py-0.5 rounded-full border border-orange-500/20">
+              Vista Previa Anatómica
+            </span>
+            <h2 id="previewTitle" class="text-lg font-bold text-white mt-1">Kettlebell Swing</h2>
+          </div>
+          <button onclick="resetRoutineState()" class="text-xs bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white px-2.5 py-1.5 rounded-lg border border-slate-700 transition flex items-center gap-1">
+            <i class="fa-solid fa-rotate-right text-orange-400"></i> Reiniciar
+          </button>
         </div>
 
         <!-- Canvas Container -->
-        <div class="my-auto py-2 flex flex-col items-center">
-            <div class="w-full max-w-sm h-56 bg-slate-900 border border-slate-700 rounded-xl overflow-hidden flex items-center justify-center relative shadow-2xl">
-                <canvas id="active-modal-canvas" width="300" height="220" class="w-full h-full object-contain"></canvas>
-            </div>
-            <p id="ex-desc" class="text-xs text-slate-300 text-center mt-3 max-w-sm px-2">Descripción de la técnica correcta para realizar este ejercicio.</p>
+        <div class="relative w-full h-52 bg-slate-950 rounded-xl border border-slate-800/80 overflow-hidden flex items-center justify-center">
+          <canvas id="previewCanvas" class="w-full h-full block"></canvas>
+          
+          <div class="absolute bottom-2 left-2 right-2 flex justify-between items-center pointer-events-none px-2">
+            <span class="text-[10px] text-slate-400 bg-slate-900/80 px-2 py-0.5 rounded-md border border-slate-800">
+              <i class="fa-solid fa-eye text-orange-400 mr-1"></i> Toca un ejercicio abajo
+            </span>
+            <span id="previewMuscles" class="text-[10px] font-semibold text-orange-300 bg-orange-950/60 border border-orange-800/50 px-2 py-0.5 rounded-md">
+              Glúteos & Isquios
+            </span>
+          </div>
         </div>
 
-        <!-- Timer & Controls -->
-        <div class="space-y-3 bg-slate-900/90 border border-slate-800 p-4 rounded-xl max-w-md mx-auto w-full">
-            <div id="timer-status" class="text-center text-xs font-bold uppercase tracking-widest text-orange-500">¡EN TRABAJO!</div>
-            
-            <div class="text-center">
-                <span id="timer-val" class="text-6xl font-black text-white font-mono tracking-wider">00:45</span>
-            </div>
-
-            <!-- Progress Bar -->
-            <div class="w-full bg-slate-800 h-3 rounded-full overflow-hidden border border-slate-700">
-                <div id="progress-fill" class="bg-sky-400 h-full w-0 transition-all duration-300 ease-linear"></div>
-            </div>
-
-            <!-- Buttons -->
-            <div class="grid grid-cols-2 gap-2 pt-2">
-                <button onclick="restartWorkoutSession()" class="bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-600 font-bold py-2.5 rounded-lg text-xs transition flex items-center justify-center gap-1">
-                    🔄 Reiniciar Rutina
-                </button>
-                <button onclick="stopWorkout()" class="bg-rose-900/80 hover:bg-rose-800 text-rose-200 border border-rose-700 font-bold py-2.5 rounded-lg text-xs transition">
-                    ❌ Cancelar
-                </button>
-            </div>
+        <!-- Quick Exercise Selector Carousel -->
+        <div class="mt-3 flex gap-2 overflow-x-auto pb-1 custom-scrollbar" id="previewSelector">
+          <!-- Populated dynamically -->
         </div>
+
+        <!-- Start Workout CTA -->
+        <button onclick="startWorkoutSession()" class="w-full mt-4 bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-slate-950 font-extrabold py-3.5 px-4 rounded-xl shadow-lg shadow-orange-500/25 flex items-center justify-center gap-2 text-base transition transform active:scale-95">
+          <i class="fa-solid fa-play text-lg"></i> INICIAR RUTINA (4 RONDAS)
+        </button>
+      </div>
+
+      <!-- Workout Overview Specs -->
+      <div class="grid grid-cols-3 gap-2 text-center">
+        <div class="bg-slate-900 border border-slate-800 p-2.5 rounded-xl">
+          <p class="text-[10px] text-slate-400 uppercase font-semibold">Rondas</p>
+          <p class="text-base font-bold text-slate-200">4 Series</p>
+        </div>
+        <div class="bg-slate-900 border border-slate-800 p-2.5 rounded-xl">
+          <p class="text-[10px] text-slate-400 uppercase font-semibold">Trabajo/Descanso</p>
+          <p class="text-base font-bold text-orange-400">45s / 15s</p>
+        </div>
+        <div class="bg-slate-900 border border-slate-800 p-2.5 rounded-xl">
+          <p class="text-[10px] text-slate-400 uppercase font-semibold">Tiempo Est.</p>
+          <p class="text-base font-bold text-slate-200">~20 min</p>
+        </div>
+      </div>
+
+      <!-- Exercise List Header -->
+      <div class="flex justify-between items-center pt-2">
+        <h3 class="font-bold text-sm text-slate-300 flex items-center gap-2">
+          <i class="fa-solid fa-list-check text-orange-500"></i> Ejercicios del Circuito
+        </h3>
+        <span class="text-xs text-slate-500" id="exerciseCountLabel">5 Ejercicios</span>
+      </div>
+
+      <!-- Exercise List -->
+      <div id="exerciseListContainer" class="space-y-2.5">
+        <!-- Rendered dynamically -->
+      </div>
+    </section>
+
+    <!-- TAB 2: HYDRATION & CREATINE -->
+    <section id="tab-creatine" class="tab-content hidden space-y-4">
+      
+      <!-- OstroVit Creatine Tracker Card -->
+      <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-lg relative overflow-hidden">
+        <div class="flex items-start justify-between">
+          <div class="flex items-center gap-3">
+            <div class="w-12 h-12 rounded-xl bg-sky-500/10 border border-sky-500/20 flex items-center justify-center text-sky-400 text-xl">
+              <i class="fa-solid fa-capsules"></i>
+            </div>
+            <div>
+              <h2 class="font-bold text-base text-white">Creatina OstroVit</h2>
+              <p class="text-xs text-slate-400">Dosis diaria recomendada: 5g</p>
+            </div>
+          </div>
+          <span id="creatineStatusBadge" class="text-[10px] font-bold uppercase px-2 py-1 rounded-md bg-slate-800 text-slate-400 border border-slate-700">
+            Pendiente
+          </span>
+        </div>
+
+        <div class="mt-5 p-4 bg-slate-950/60 rounded-xl border border-slate-800/80 flex items-center justify-between">
+          <div>
+            <p class="text-xs text-slate-400">Racha Actual de Creatina</p>
+            <p class="text-2xl font-black text-sky-400" id="creatineStreakText">0 Días</p>
+          </div>
+          <button id="creatineBtn" onclick="toggleCreatineToday()" class="bg-sky-500 hover:bg-sky-600 text-slate-950 font-bold px-4 py-2.5 rounded-xl shadow-md transition active:scale-95 text-xs flex items-center gap-1.5">
+            <i class="fa-solid fa-check"></i> Registrar 5g
+          </button>
+        </div>
+      </div>
+
+      <!-- Water Tracker Card -->
+      <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-lg space-y-4">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-3">
+            <div class="w-12 h-12 rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-400 text-xl">
+              <i class="fa-solid fa-glass-water"></i>
+            </div>
+            <div>
+              <h2 class="font-bold text-base text-white">Hidratación Diaria</h2>
+              <p class="text-xs text-slate-400">Meta: 2.5 Litros (2500 ml)</p>
+            </div>
+          </div>
+          <span class="text-lg font-black text-blue-400" id="waterText">0 / 2500 ml</span>
+        </div>
+
+        <!-- Progress Bar -->
+        <div class="w-full bg-slate-950 h-3 rounded-full overflow-hidden border border-slate-800">
+          <div id="waterBar" class="bg-gradient-to-r from-blue-500 to-cyan-400 h-full w-0 transition-all duration-300"></div>
+        </div>
+
+        <!-- Add Water Buttons -->
+        <div class="grid grid-cols-3 gap-2">
+          <button onclick="addWater(250)" class="bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold py-2.5 rounded-xl border border-slate-700 transition active:scale-95">
+            +250 ml
+          </button>
+          <button onclick="addWater(500)" class="bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold py-2.5 rounded-xl border border-slate-700 transition active:scale-95">
+            +500 ml
+          </button>
+          <button onclick="resetWater()" class="bg-slate-800/50 hover:bg-slate-800 text-rose-400 text-xs font-semibold py-2.5 rounded-xl border border-slate-800 transition active:scale-95">
+            Reset
+          </button>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- TAB 3: CALENDAR & HISTORY -->
+    <section id="tab-calendar" class="tab-content hidden space-y-4">
+      <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 shadow-lg">
+        <div class="flex items-center justify-between mb-4">
+          <h2 class="font-bold text-base text-white flex items-center gap-2">
+            <i class="fa-solid fa-calendar-days text-orange-500"></i> Noviembre 2026
+          </h2>
+          <span class="text-xs text-emerald-400 bg-emerald-950/60 border border-emerald-800/60 px-2 py-0.5 rounded-md font-semibold">
+            Objetivo: 21 Nov 2026
+          </span>
+        </div>
+
+        <!-- Calendar Days Header -->
+        <div class="grid grid-cols-7 gap-1 text-center text-xs font-bold text-slate-400 mb-2">
+          <div>Lun</div><div>Mar</div><div>Mié</div><div>Jue</div><div>Vie</div><div>Sáb</div><div>Dom</div>
+        </div>
+
+        <!-- Calendar Grid -->
+        <div id="calendarGrid" class="grid grid-cols-7 gap-1 text-center text-xs">
+          <!-- Populated dynamically -->
+        </div>
+      </div>
+
+      <!-- Goal Info Card -->
+      <div class="bg-slate-900/60 border border-slate-800 p-4 rounded-xl flex items-center gap-3">
+        <div class="w-10 h-10 rounded-lg bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 shrink-0">
+          <i class="fa-solid fa-bullseye text-lg"></i>
+        </div>
+        <div>
+          <p class="text-xs font-bold text-slate-200">Meta Definitiva -3 kg</p>
+          <p class="text-[11px] text-slate-400">Entrenamientos registrados marcan en <span class="text-emerald-400 font-semibold">verde</span> los días activos.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 4: NUTRITION PLAN -->
+    <section id="tab-nutrition" class="tab-content hidden space-y-4">
+      <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 shadow-lg">
+        <h2 class="font-bold text-base text-white mb-1 flex items-center gap-2">
+          <i class="fa-solid fa-utensils text-amber-500"></i> Plan Nutricional Objetivo
+        </h2>
+        <p class="text-xs text-slate-400 mb-4">Déficit calórico moderado + alta proteína para perder 3 kg en 30 días.</p>
+
+        <div class="space-y-3">
+          <div class="p-3 bg-slate-950 rounded-xl border border-slate-800">
+            <p class="text-xs font-bold text-amber-400 mb-0.5">🍳 Desayuno</p>
+            <p class="text-xs text-slate-300">3 huevos revueltos, 1 tostada integral con aguacate/palta, café solo o té.</p>
+          </div>
+          <div class="p-3 bg-slate-950 rounded-xl border border-slate-800">
+            <p class="text-xs font-bold text-emerald-400 mb-0.5">🥗 Almuerzo</p>
+            <p class="text-xs text-slate-300">200g pechuga de pollo o pavo, ensalada verde abundante (aceite de oliva 1 cda), 100g camote o arroz integral.</p>
+          </div>
+          <div class="p-3 bg-slate-950 rounded-xl border border-slate-800">
+            <p class="text-xs font-bold text-sky-400 mb-0.5">⚡ Merienda / Pre-workout</p>
+            <p class="text-xs text-slate-300">1 yogur griego natural alto en proteína + 5g Creatina OstroVit + un puñado de almendras.</p>
+          </div>
+          <div class="p-3 bg-slate-950 rounded-xl border border-slate-800">
+            <p class="text-xs font-bold text-purple-400 mb-0.5">🐟 Cena</p>
+            <p class="text-xs text-slate-300">200g filete de merluza, salmón o atún a la plancha con espárragos o brócoli al vapor.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- MODAL: WORKOUT SESSION PLAYER (FLOATING FULLSCREEN OVERLAY) -->
+  <div id="workoutModal" class="fixed inset-0 bg-slate-950/95 z-50 flex-col justify-between p-4 hidden backdrop-blur-xl">
+    
+    <!-- Modal Header -->
+    <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+      <div class="flex items-center gap-2">
+        <span id="playerRoundBadge" class="text-xs font-black uppercase px-2.5 py-1 rounded-lg bg-orange-500/20 text-orange-400 border border-orange-500/30">
+          Ronda 1 / 4
+        </span>
+        <span id="playerStateBadge" class="text-xs font-bold uppercase px-2.5 py-1 rounded-lg bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
+          TRABAJO
+        </span>
+      </div>
+
+      <div class="flex items-center gap-2">
+        <button onclick="resetRoutineState()" class="p-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg border border-slate-700 transition" title="Reiniciar Sesión">
+          <i class="fa-solid fa-rotate-right text-xs"></i>
+        </button>
+        <button onclick="closeWorkoutModal()" class="p-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg border border-slate-700 transition">
+          <i class="fa-solid fa-xmark text-sm"></i>
+        </button>
+      </div>
     </div>
 
-    <!-- AUDIO EFFECTS (Web Audio API) & SCRIPT -->
-    <script>
-        // --- TARGET COUNTDOWN ---
-        const targetDate = new Date('2026-11-21T00:00:00');
-        const now = new Date();
-        const diffTime = Math.max(0, targetDate - now);
-        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-        document.getElementById('days-left').innerText = diffDays;
+    <!-- Active Canvas Display -->
+    <div class="my-auto flex flex-col items-center justify-center w-full max-w-sm mx-auto">
+      <div class="text-center mb-2">
+        <h3 id="playerExName" class="text-xl font-extrabold text-white">Kettlebell Swing</h3>
+        <p id="playerExMuscles" class="text-xs text-orange-400 font-semibold">Glúteos e Isquiotibiales</p>
+      </div>
 
-        // --- APP STATE ---
-        let state = JSON.parse(localStorage.getItem('fitkettle_v5_state')) || {
-            creatineLastDate: null,
-            creatineStreak: 0,
-            water: 0,
-            cardioHistory: [],
-            workoutLog: {}
-        };
+      <!-- Canvas Frame -->
+      <div class="w-full h-60 bg-slate-900 rounded-2xl border-2 border-slate-800 overflow-hidden relative shadow-2xl">
+        <canvas id="activeCanvas" class="w-full h-full block"></canvas>
+      </div>
 
-        function saveState() {
-            localStorage.setItem('fitkettle_v5_state', JSON.stringify(state));
-            updateUI();
+      <!-- Big Timer Display -->
+      <div class="mt-4 text-center">
+        <div id="playerTimer" class="text-6xl font-black tracking-tight text-orange-400 font-mono drop-shadow-md">
+          45
+        </div>
+        <p id="playerTimerSub" class="text-xs uppercase tracking-widest text-slate-400 font-bold mt-1">Segundos Restantes</p>
+      </div>
+    </div>
+
+    <!-- Modal Footer Controls -->
+    <div class="border-t border-slate-800 pt-3 space-y-2 max-w-sm mx-auto w-full">
+      <div class="flex items-center gap-2">
+        <button id="pausePlayBtn" onclick="togglePauseWorkout()" class="flex-1 bg-slate-800 hover:bg-slate-700 border border-slate-700 font-bold py-3 rounded-xl text-slate-200 transition flex items-center justify-center gap-2">
+          <i id="pausePlayIcon" class="fa-solid fa-pause"></i> <span id="pausePlayText">Pausar</span>
+        </button>
+        <button onclick="nextExerciseManual()" class="flex-1 bg-orange-500 hover:bg-orange-600 font-bold py-3 rounded-xl text-slate-950 transition flex items-center justify-center gap-2">
+          Siguiente <i class="fa-solid fa-forward"></i>
+        </button>
+      </div>
+      <button onclick="closeWorkoutModal()" class="w-full text-center text-xs text-slate-500 hover:text-slate-300 py-1">
+        Finalizar o salir al menú
+      </button>
+    </div>
+  </div>
+
+  <!-- BOTTOM NAVIGATION BAR -->
+  <nav class="fixed bottom-0 left-0 right-0 z-30 bg-slate-900/95 backdrop-blur-md border-t border-slate-800 px-4 py-2">
+    <div class="max-w-lg mx-auto flex justify-around items-center">
+      <button onclick="switchTab('routine')" id="nav-routine" class="nav-btn flex flex-col items-center gap-1 text-orange-500">
+        <i class="fa-solid fa-dumbbell text-lg"></i>
+        <span class="text-[10px] font-bold">Rutina</span>
+      </button>
+      <button onclick="switchTab('creatine')" id="nav-creatine" class="nav-btn flex flex-col items-center gap-1 text-slate-400 hover:text-slate-200">
+        <i class="fa-solid fa-bottle-water text-lg"></i>
+        <span class="text-[10px] font-bold">Tracker</span>
+      </button>
+      <button onclick="switchTab('calendar')" id="nav-calendar" class="nav-btn flex flex-col items-center gap-1 text-slate-400 hover:text-slate-200">
+        <i class="fa-solid fa-calendar-days text-lg"></i>
+        <span class="text-[10px] font-bold">Calendario</span>
+      </button>
+      <button onclick="switchTab('nutrition')" id="nav-nutrition" class="nav-btn flex flex-col items-center gap-1 text-slate-400 hover:text-slate-200">
+        <i class="fa-solid fa-utensils text-lg"></i>
+        <span class="text-[10px] font-bold">Nutrición</span>
+      </button>
+    </div>
+  </nav>
+
+  <!-- JAVASCRIPT LOGIC -->
+  <script>
+    // --- EXERCISES DEFINITION ---
+    const EXERCISES = [
+      {
+        id: 'swing',
+        name: 'Kettlebell Swing',
+        muscles: 'Glúteos, Isquios & Core',
+        desc: 'Flexión de cadera explosiva guiando la kettlebell a la altura del pecho.'
+      },
+      {
+        id: 'goblet_squat',
+        name: 'Goblet Squat',
+        muscles: 'Cuádriceps & Glúteos',
+        desc: 'Sentadilla profunda sosteniendo la kettlebell pegada al pecho.'
+      },
+      {
+        id: 'clean_press',
+        name: 'Clean & Press',
+        muscles: 'Hombros, Tríceps & Espalda',
+        desc: 'Lleva la pesas del suelo al hombro y empuja sobre la cabeza.'
+      },
+      {
+        id: 'sumo_deadlift',
+        name: 'Sumo Deadlift High Pull',
+        muscles: 'Piernas, Trapecios & Hombros',
+        desc: 'Peso muerto sumo elevando los codos por encima de las manos.'
+      },
+      {
+        id: 'russian_twist',
+        name: 'Russian Twist',
+        muscles: 'Abdomen & Oblicuos',
+        desc: 'Rotación de tronco sentado sosteniendo la pesas de lado a lado.'
+      }
+    ];
+
+    // --- APP STATE ---
+    let appState = {
+      selectedPreviewIndex: 0,
+      currentRound: 1,
+      totalRounds: 4,
+      currentExIndex: 0,
+      workoutPhase: 'WORK', // 'WORK' or 'REST'
+      timerSeconds: 45,
+      isPaused: false,
+      creatineStreak: 0,
+      creatineDoneToday: false,
+      waterAmount: 0,
+      completedDays: [] // Stores 'YYYY-MM-DD'
+    };
+
+    // Global Animation Timers
+    let workoutTimerInterval = null;
+    let animAnimationFrameId = null;
+    let animAngle = 0;
+
+    // --- INITIALIZATION ---
+    window.addEventListener('load', () => {
+      loadLocalStorage();
+      renderExerciseList();
+      renderPreviewSelector();
+      renderCalendar();
+      updateCreatineUI();
+      updateWaterUI();
+      
+      // Setup canvas resize listeners
+      window.addEventListener('resize', setupCanvases);
+      setupCanvases();
+      
+      // Start main continuous animation loop
+      requestAnimationFrame(animationLoop);
+    });
+
+    function loadLocalStorage() {
+      try {
+        const saved = localStorage.getItem('fitkettle_data');
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          appState.creatineStreak = parsed.creatineStreak || 0;
+          appState.creatineDoneToday = parsed.creatineDoneToday || false;
+          appState.waterAmount = parsed.waterAmount || 0;
+          appState.completedDays = parsed.completedDays || [];
+        }
+      } catch (e) {
+        console.error("Error loading localStorage", e);
+      }
+    }
+
+    function saveLocalStorage() {
+      try {
+        localStorage.setItem('fitkettle_data', JSON.stringify({
+          creatineStreak: appState.creatineStreak,
+          creatineDoneToday: appState.creatineDoneToday,
+          waterAmount: appState.waterAmount,
+          completedDays: appState.completedDays
+        }));
+      } catch (e) {
+        console.error("Error saving localStorage", e);
+      }
+    }
+
+    // --- NAVIGATION TABS ---
+    function switchTab(tabId) {
+      document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+      document.getElementById(`tab-${tabId}`).classList.remove('hidden');
+
+      document.querySelectorAll('.nav-btn').forEach(btn => {
+        btn.classList.remove('text-orange-500');
+        btn.classList.add('text-slate-400');
+      });
+      document.getElementById(`nav-${tabId}`).classList.add('text-orange-500');
+      document.getElementById(`nav-${tabId}`).classList.remove('text-slate-400');
+
+      setupCanvases();
+    }
+
+    // --- RENDER EXERCISES LIST & SELECTOR ---
+    function renderExerciseList() {
+      const container = document.getElementById('exerciseListContainer');
+      container.innerHTML = EXERCISES.map((ex, idx) => `
+        <div onclick="selectPreview(${idx})" class="p-3 bg-slate-900 border ${appState.selectedPreviewIndex === idx ? 'border-orange-500 bg-slate-800/80' : 'border-slate-800 hover:border-slate-700'} rounded-xl cursor-pointer transition flex items-center justify-between">
+          <div class="flex items-center gap-3">
+            <div class="w-8 h-8 rounded-lg ${appState.selectedPreviewIndex === idx ? 'bg-orange-500 text-slate-950 font-bold' : 'bg-slate-800 text-slate-400'} flex items-center justify-center text-xs">
+              ${idx + 1}
+            </div>
+            <div>
+              <p class="text-xs font-bold text-slate-100">${ex.name}</p>
+              <p class="text-[10px] text-slate-400">${ex.muscles}</p>
+            </div>
+          </div>
+          <button class="text-xs text-orange-400 font-semibold px-2 py-1 rounded bg-orange-500/10 border border-orange-500/20">
+            <i class="fa-solid fa-eye"></i> Ver
+          </button>
+        </div>
+      `).join('');
+    }
+
+    function renderPreviewSelector() {
+      const container = document.getElementById('previewSelector');
+      container.innerHTML = EXERCISES.map((ex, idx) => `
+        <button onclick="selectPreview(${idx})" class="shrink-0 px-3 py-1.5 rounded-lg text-xs font-bold border transition ${appState.selectedPreviewIndex === idx ? 'bg-orange-500 text-slate-950 border-orange-400' : 'bg-slate-950 text-slate-400 border-slate-800 hover:border-slate-700'}">
+          ${ex.name}
+        </button>
+      `).join('');
+    }
+
+    function selectPreview(idx) {
+      appState.selectedPreviewIndex = idx;
+      const ex = EXERCISES[idx];
+      document.getElementById('previewTitle').innerText = ex.name;
+      document.getElementById('previewMuscles').innerText = ex.muscles;
+      renderExerciseList();
+      renderPreviewSelector();
+    }
+
+    // --- CANVAS DRAWING & ANIMATION (ULTRA RESISTANT WITH TRY-CATCH) ---
+    function setupCanvases() {
+      const pCanvas = document.getElementById('previewCanvas');
+      if (pCanvas) {
+        pCanvas.width = pCanvas.clientWidth || 320;
+        pCanvas.height = pCanvas.clientHeight || 200;
+      }
+      const aCanvas = document.getElementById('activeCanvas');
+      if (aCanvas) {
+        aCanvas.width = aCanvas.clientWidth || 320;
+        aCanvas.height = aCanvas.clientHeight || 240;
+      }
+    }
+
+    function animationLoop() {
+      animAngle += 0.04;
+      if (animAngle > Math.PI * 2) animAngle = 0;
+
+      // 1. Draw Preview Canvas
+      const pCanvas = document.getElementById('previewCanvas');
+      if (pCanvas && pCanvas.width > 0) {
+        const ctx = pCanvas.getContext('2d');
+        const currentEx = EXERCISES[appState.selectedPreviewIndex];
+        drawExerciseFigure(ctx, pCanvas.width, pCanvas.height, currentEx.id, animAngle);
+      }
+
+      // 2. Draw Active Workout Canvas (if Modal visible)
+      const modal = document.getElementById('workoutModal');
+      if (modal && !modal.classList.contains('hidden')) {
+        const aCanvas = document.getElementById('activeCanvas');
+        if (aCanvas && aCanvas.width > 0) {
+          const ctx = aCanvas.getContext('2d');
+          const activeEx = EXERCISES[appState.currentExIndex];
+          drawExerciseFigure(ctx, aCanvas.width, aCanvas.height, activeEx.id, animAngle);
+        }
+      }
+
+      requestAnimationFrame(animationLoop);
+    }
+
+    // Anatomical Stick Figure + Kettlebell Drawing Logic
+    function drawExerciseFigure(ctx, w, h, exId, angle) {
+      try {
+        ctx.clearRect(0, 0, w, h);
+
+        // Background grid effect
+        ctx.strokeStyle = 'rgba(51, 65, 85, 0.2)';
+        ctx.lineWidth = 1;
+        const size = 20;
+        for (let x = 0; x < w; x += size) {
+          ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, h); ctx.stroke();
+        }
+        for (let y = 0; y < h; y += size) {
+          ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(w, y); ctx.stroke();
         }
 
-        // --- ROUTINES DEFINITION ---
-        const routines = {
-            A: {
-                name: "Rutina Día A: Fuerza e Impacto",
-                desc: "4 Rondas | Piernas, Glúteos, Pecho y Espalda",
-                exercises: [
-                    { title: "Zancadas Inversas", desc: "Sostén la kettlebell al pecho. Da un paso largo atrás bajando la rodilla con control.", duration: 45, type: "lunge" },
-                    { title: "Puente de Glúteos", desc: "Acostado boca arriba, apoya la kettlebell en la pelvis y eleva caderas con firmeza.", duration: 45, type: "bridge" },
-                    { title: "Giros Rusos", desc: "Sentado, inclina el torso levemente y rota la pesa de lado a lado contrayendo abdomen.", duration: 45, type: "twist" },
-                    { title: "Flexiones Asimétricas", desc: "Una mano sobre el asa de la pesa y la otra en el suelo. Haz flexión alternando lados.", duration: 45, type: "pushup" },
-                    { title: "Remo a una Mano", desc: "Inclina el torso 45°, eleva el codo jalando la pesa hacia la cadera sin rotar la espalda.", duration: 45, type: "row" }
-                ]
-            },
-            B: {
-                name: "Rutina Día B: Core y Dinamismo",
-                desc: "4 Rondas | Potencia, Hombros y Cadera",
-                exercises: [
-                    { title: "Kettlebell Swings", desc: "Balancea la pesa desde la ingle impulsándote con la explosión de cadera.", duration: 45, type: "swing" },
-                    { title: "Sentadillas Goblet", desc: "Pesa pegada al pecho, baja caderas manteniendo espalda recta y rodillas alineadas.", duration: 45, type: "squat" },
-                    { title: "Peso Muerto", desc: "Flexiona cadera mandando glúteos atrás, rozando las piernas con la pesa hasta el piso.", duration: 45, type: "deadlift" },
-                    { title: "Press de Hombro", desc: "Pesa a la altura del hombro, empuja verticalmente sobre la cabeza con la zona media firme.", duration: 45, type: "press" },
-                    { title: "Twist Ruso Dinámico", desc: "Gira el torso manteniendo los talones suspendidos o apoyados en el suelo.", duration: 45, type: "twist" }
-                ]
+        const cx = w / 2;
+        const cy = h / 2 + 10;
+        const sinVal = Math.sin(angle);
+
+        ctx.lineCap = 'round';
+        ctx.lineJoin = 'round';
+
+        // Body stroke settings
+        ctx.strokeStyle = '#f8fafc'; // White body
+        ctx.lineWidth = 4;
+
+        if (exId === 'swing') {
+          // Kettlebell Swing animation logic
+          const hipAngle = sinVal * 0.4;
+          const kbDist = 45 + sinVal * 35;
+          const kbY = cy - sinVal * 30;
+
+          // Head
+          ctx.beginPath(); ctx.arc(cx - 10, cy - 65, 10, 0, Math.PI * 2); ctx.stroke();
+          // Torso
+          ctx.beginPath(); ctx.moveTo(cx - 10, cy - 55); ctx.lineTo(cx, cy - 10); ctx.stroke();
+          // Legs
+          ctx.beginPath(); ctx.moveTo(cx, cy - 10); ctx.lineTo(cx - 15, cy + 40); ctx.stroke();
+          ctx.beginPath(); ctx.moveTo(cx, cy - 10); ctx.lineTo(cx + 15, cy + 40); ctx.stroke();
+          // Arms
+          ctx.beginPath(); ctx.moveTo(cx - 10, cy - 45); ctx.lineTo(cx + kbDist - 20, kbY); ctx.stroke();
+
+          // Kettlebell
+          drawKettlebell(ctx, cx + kbDist - 20, kbY);
+
+        } else if (exId === 'goblet_squat') {
+          // Squat animation logic
+          const squatY = Math.max(0, sinVal) * 25;
+
+          // Head
+          ctx.beginPath(); ctx.arc(cx, cy - 60 + squatY, 10, 0, Math.PI * 2); ctx.stroke();
+          // Torso
+          ctx.beginPath(); ctx.moveTo(cx, cy - 50 + squatY); ctx.lineTo(cx, cy - 10 + squatY); ctx.stroke();
+          // Legs
+          ctx.beginPath(); ctx.moveTo(cx, cy - 10 + squatY); ctx.lineTo(cx - 25, cy + 15); ctx.lineTo(cx - 20, cy + 45); ctx.stroke();
+          ctx.beginPath(); ctx.moveTo(cx, cy - 10 + squatY); ctx.lineTo(cx + 25, cy + 15); ctx.lineTo(cx + 20, cy + 45); ctx.stroke();
+          // Arms
+          ctx.beginPath(); ctx.moveTo(cx, cy - 40 + squatY); ctx.lineTo(cx, cy - 25 + squatY); ctx.stroke();
+
+          // Kettlebell at chest
+          drawKettlebell(ctx, cx, cy - 25 + squatY);
+
+        } else if (exId === 'clean_press') {
+          // Press Overhead
+          const pressY = sinVal * 40;
+
+          // Head
+          ctx.beginPath(); ctx.arc(cx, cy - 60, 10, 0, Math.PI * 2); ctx.stroke();
+          // Torso
+          ctx.beginPath(); ctx.moveTo(cx, cy - 50); ctx.lineTo(cx, cy); ctx.stroke();
+          // Legs
+          ctx.beginPath(); ctx.moveTo(cx, cy); ctx.lineTo(cx - 15, cy + 45); ctx.stroke();
+          ctx.beginPath(); ctx.moveTo(cx, cy); ctx.lineTo(cx + 15, cy + 45); ctx.stroke();
+          // Arm
+          const handY = cy - 40 - Math.abs(pressY);
+          ctx.beginPath(); ctx.moveTo(cx, cy - 40); ctx.lineTo(cx + 15, handY); ctx.stroke();
+
+          // Kettlebell
+          drawKettlebell(ctx, cx + 15, handY - 10);
+
+        } else if (exId === 'sumo_deadlift') {
+          // High pull logic
+          const pullY = Math.abs(sinVal) * 30;
+
+          // Head
+          ctx.beginPath(); ctx.arc(cx, cy - 60, 10, 0, Math.PI * 2); ctx.stroke();
+          // Torso
+          ctx.beginPath(); ctx.moveTo(cx, cy - 50); ctx.lineTo(cx, cy); ctx.stroke();
+          // Wide Legs
+          ctx.beginPath(); ctx.moveTo(cx, cy); ctx.lineTo(cx - 30, cy + 45); ctx.stroke();
+          ctx.beginPath(); ctx.moveTo(cx, cy); ctx.lineTo(cx + 30, cy + 45); ctx.stroke();
+          // Arms
+          const kbY = cy + 10 - pullY;
+          ctx.beginPath(); ctx.moveTo(cx, cy - 40); ctx.lineTo(cx, kbY); ctx.stroke();
+
+          drawKettlebell(ctx, cx, kbY);
+
+        } else {
+          // Russian Twist
+          const twistX = sinVal * 30;
+
+          // Seated body
+          ctx.beginPath(); ctx.arc(cx, cy - 30, 10, 0, Math.PI * 2); ctx.stroke();
+          ctx.beginPath(); ctx.moveTo(cx, cy - 20); ctx.lineTo(cx - 10, cy + 20); ctx.stroke();
+          ctx.beginPath(); ctx.moveTo(cx - 10, cy + 20); ctx.lineTo(cx + 20, cy + 15); ctx.stroke();
+
+          // Arms & Kettlebell
+          ctx.beginPath(); ctx.moveTo(cx, cy - 10); ctx.lineTo(cx + twistX, cy + 5); ctx.stroke();
+          drawKettlebell(ctx, cx + twistX, cy + 5);
+        }
+
+      } catch (err) {
+        // Safe Canvas Fallback
+        ctx.fillStyle = '#0f172a';
+        ctx.fillRect(0, 0, w, h);
+        ctx.fillStyle = '#f97316';
+        ctx.font = '12px sans-serif';
+        ctx.fillText('Cargando gráfico...', 20, h / 2);
+      }
+    }
+
+    function drawKettlebell(ctx, x, y) {
+      // Handle / Ring
+      ctx.strokeStyle = '#94a3b8';
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.arc(x, y - 8, 7, Math.PI, 0);
+      ctx.stroke();
+
+      // Main Ball (Naranja Vibrant)
+      ctx.fillStyle = '#f97316';
+      ctx.beginPath();
+      ctx.arc(x, y, 10, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.strokeStyle = '#ea580c';
+      ctx.lineWidth = 2;
+      ctx.stroke();
+    }
+
+    // --- WORKOUT ROUTINE TIMER ENGINE ---
+    function startWorkoutSession() {
+      appState.currentRound = 1;
+      appState.currentExIndex = 0;
+      appState.workoutPhase = 'WORK';
+      appState.timerSeconds = 45;
+      appState.isPaused = false;
+
+      document.getElementById('workoutModal').classList.remove('hidden');
+      document.getElementById('workoutModal').classList.add('flex');
+      
+      setupCanvases();
+      updatePlayerUI();
+      startIntervalEngine();
+    }
+
+    function startIntervalEngine() {
+      clearInterval(workoutTimerInterval);
+      workoutTimerInterval = setInterval(() => {
+        if (appState.isPaused) return;
+
+        if (appState.timerSeconds > 0) {
+          appState.timerSeconds--;
+          updateTimerDisplay();
+        } else {
+          // Phase complete logic
+          if (appState.workoutPhase === 'WORK') {
+            appState.workoutPhase = 'REST';
+            appState.timerSeconds = 15;
+          } else {
+            // REST complete -> Next exercise
+            appState.workoutPhase = 'WORK';
+            appState.timerSeconds = 45;
+            appState.currentExIndex++;
+
+            if (appState.currentExIndex >= EXERCISES.length) {
+              appState.currentExIndex = 0;
+              appState.currentRound++;
+
+              if (appState.currentRound > appState.totalRounds) {
+                finishWorkoutSession();
+                return;
+              }
             }
-        };
-
-        // Rotation: Change routine every 2 days
-        const startYearDay = Math.floor((now - new Date(now.getFullYear(), 0, 0)) / (1000 * 60 * 60 * 24));
-        const currentRoutineKey = (Math.floor(startYearDay / 2) % 2 === 0) ? 'A' : 'B';
-        const activeRoutine = routines[currentRoutineKey];
-
-        // --- ANIMATION CANVAS ENGINE ---
-        // Animation global store for previews
-        let previewAnimFrames = [];
-        let previewPhases = [];
-
-        function renderHumanAnimation(ctx, canvasWidth, canvasHeight, phase, type) {
-            ctx.clearRect(0, 0, canvasWidth, canvasHeight);
-
-            // Helpers for drawing body parts
-            function drawLimb(x1, y1, x2, y2, width = 7, color = '#38bdf8') {
-                ctx.beginPath();
-                ctx.moveTo(x1, y1);
-                ctx.lineTo(x2, y2);
-                ctx.lineWidth = width;
-                ctx.strokeStyle = color;
-                ctx.lineCap = 'round';
-                ctx.stroke();
-            }
-
-            function drawKettlebell(x, y) {
-                // Bell Body
-                ctx.fillStyle = '#f97316';
-                ctx.beginPath();
-                ctx.arc(x, y + 5, 10, 0, Math.PI * 2);
-                ctx.fill();
-                // Bell Handle
-                ctx.strokeStyle = '#94a3b8';
-                ctx.lineWidth = 3;
-                ctx.beginPath();
-                ctx.arc(x, y - 3, 6, Math.PI, 0, false);
-                ctx.stroke();
-            }
-
-            function drawHead(x, y) {
-                ctx.fillStyle = '#38bdf8';
-                ctx.beginPath();
-                ctx.arc(x, y, 12, 0, Math.PI * 2);
-                ctx.fill();
-            }
-
-            const sin = Math.sin(phase);
-            const cx = canvasWidth / 2;
-            const cy = canvasHeight / 2 + 10;
-
-            if (type === 'lunge') {
-                const step = sin * 25;
-                const headY = cy - 50 + Math.abs(sin) * 10;
-                drawHead(cx, headY);
-                drawLimb(cx, headY + 12, cx, cy, 14); // Torso
-                // Legs
-                drawLimb(cx, cy, cx - 20 - step, cy + 30);
-                drawLimb(cx - 20 - step, cy + 30, cx - 20 - step, cy + 60);
-                drawLimb(cx, cy, cx + 20 + step, cy + 30);
-                drawLimb(cx + 20 + step, cy + 30, cx + 25 + step, cy + 60);
-                // Kettlebell at chest
-                drawKettlebell(cx, headY + 30);
-
-            } else if (type === 'bridge') {
-                const hipLift = Math.abs(sin) * 30;
-                const headX = cx - 60;
-                const headY = cy + 35;
-                drawHead(headX, headY);
-                drawLimb(headX + 10, headY, cx, cy + 35 - hipLift, 14); // Torso
-                drawLimb(cx, cy + 35 - hipLift, cx + 45, cy + 35); // Thighs
-                drawLimb(cx + 45, cy + 35, cx + 45, cy + 60); // Legs
-                drawKettlebell(cx - 10, cy + 20 - hipLift); // Kettlebell on hips
-
-            } else if (type === 'twist') {
-                const rot = sin * 35;
-                drawHead(cx, cy - 40);
-                drawLimb(cx, cy - 28, cx, cy + 15, 14); // Torso
-                drawLimb(cx, cy + 15, cx - 25, cy + 45); // Legs
-                drawLimb(cx, cy + 15, cx + 25, cy + 45);
-                drawLimb(cx, cy - 10, cx + rot, cy + 5, 6); // Arms holding KB
-                drawKettlebell(cx + rot, cy + 10);
-
-            } else if (type === 'pushup') {
-                const depth = Math.abs(sin) * 20;
-                const headX = cx - 40;
-                const headY = cy + depth;
-                drawHead(headX, headY);
-                drawLimb(headX + 10, headY + 5, cx + 50, cy + depth + 10, 14); // Body line
-                drawLimb(cx - 10, headY + 15, cx - 10, cy + 40, 6); // Arm on floor
-                drawLimb(cx + 15, headY + 15, cx + 15, cy + 30, 6); // Arm on KB
-                drawKettlebell(cx + 15, cy + 38);
-
-            } else if (type === 'row') {
-                const elbowY = cy - 20 - Math.abs(sin) * 25;
-                drawHead(cx - 20, cy - 35);
-                drawLimb(cx - 20, cy - 23, cx + 20, cy + 10, 14); // Incline torso
-                drawLimb(cx + 20, cy + 10, cx + 10, cy + 60); // Legs
-                drawLimb(cx + 20, cy + 10, cx + 30, cy + 60);
-                drawLimb(cx, cy - 10, cx + 10, elbowY, 6); // Arm rowing
-                drawKettlebell(cx + 10, elbowY + 15);
-
-            } else if (type === 'swing') {
-                const swingAngle = sin * 45;
-                const kbX = cx + Math.sin(swingAngle * Math.PI / 180) * 60;
-                const kbY = cy + Math.cos(swingAngle * Math.PI / 180) * 50 - 20;
-                drawHead(cx, cy - 45);
-                drawLimb(cx, cy - 33, cx, cy + 10, 14); // Torso
-                drawLimb(cx, cy + 10, cx - 18, cy + 60); // Legs
-                drawLimb(cx, cy + 10, cx + 18, cy + 60);
-                drawLimb(cx, cy - 15, kbX, kbY - 10, 6); // Arms
-                drawKettlebell(kbX, kbY);
-
-            } else if (type === 'squat') {
-                const depth = Math.abs(sin) * 35;
-                drawHead(cx, cy - 45 + depth);
-                drawLimb(cx, cy - 33 + depth, cx, cy + depth, 14); // Torso
-                drawLimb(cx, cy + depth, cx - 25, cy + depth + 25); // Thighs
-                drawLimb(cx - 25, cy + depth + 25, cx - 20, cy + 60); // Calves
-                drawLimb(cx, cy + depth, cx + 25, cy + depth + 25);
-                drawLimb(cx + 25, cy + depth + 25, cx + 20, cy + 60);
-                drawKettlebell(cx, cy - 10 + depth);
-
-            } else if (type === 'deadlift') {
-                const bend = Math.abs(sin) * 35;
-                const headX = cx - bend * 0.8;
-                const headY = cy - 40 + bend * 0.6;
-                drawHead(headX, headY);
-                drawLimb(headX, headY + 12, cx + 10, cy + 10, 14); // Torso bending
-                drawLimb(cx + 10, cy + 10, cx, cy + 60); // Legs straight
-                drawLimb(cx + 10, cy + 10, cx + 20, cy + 60);
-                drawLimb(headX + 10, headY + 15, cx - 5, cy + 20 + bend * 0.5, 6);
-                drawKettlebell(cx - 5, cy + 25 + bend * 0.5);
-
-            } else if (type === 'press') {
-                const pressY = cy - 30 - sin * 35;
-                drawHead(cx, cy - 40);
-                drawLimb(cx, cy - 28, cx, cy + 15, 14); // Torso
-                drawLimb(cx, cy + 15, cx - 18, cy + 60); // Legs
-                drawLimb(cx, cy + 15, cx + 18, cy + 60);
-                drawLimb(cx + 12, cy - 15, cx + 20, pressY + 15, 6); // Arm pressing
-                drawKettlebell(cx + 20, pressY);
-
-            } else {
-                // Rest stance
-                drawHead(cx, cy - 40);
-                drawLimb(cx, cy - 28, cx, cy + 15, 14);
-                drawLimb(cx, cy + 15, cx - 15, cy + 60);
-                drawLimb(cx, cy + 15, cx + 15, cy + 60);
-                drawKettlebell(cx, cy + 20);
-            }
+          }
+          updatePlayerUI();
         }
+      }, 1000);
+    }
 
-        // --- RENDER EXERCISE PREVIEWS ON MAIN TAB ---
-        function loadRoutineUI() {
-            document.getElementById('routine-tag').innerText = `🏋️ ${activeRoutine.name}`;
-            document.getElementById('routine-desc').innerText = activeRoutine.desc;
+    function updateTimerDisplay() {
+      const timerEl = document.getElementById('playerTimer');
+      timerEl.innerText = appState.timerSeconds;
+      
+      if (appState.workoutPhase === 'WORK') {
+        timerEl.className = "text-6xl font-black tracking-tight text-orange-400 font-mono drop-shadow-md";
+      } else {
+        timerEl.className = "text-6xl font-black tracking-tight text-sky-400 font-mono drop-shadow-md";
+      }
+    }
 
-            const container = document.getElementById('exercise-previews-container');
-            container.innerHTML = '';
+    function updatePlayerUI() {
+      const ex = EXERCISES[appState.currentExIndex];
+      document.getElementById('playerRoundBadge').innerText = `Ronda ${appState.currentRound} / ${appState.totalRounds}`;
+      
+      const stateBadge = document.getElementById('playerStateBadge');
+      if (appState.workoutPhase === 'WORK') {
+        stateBadge.innerText = "TRABAJO";
+        stateBadge.className = "text-xs font-bold uppercase px-2.5 py-1 rounded-lg bg-emerald-500/20 text-emerald-400 border border-emerald-500/30";
+      } else {
+        stateBadge.innerText = "DESCANSO";
+        stateBadge.className = "text-xs font-bold uppercase px-2.5 py-1 rounded-lg bg-sky-500/20 text-sky-400 border border-sky-500/30";
+      }
 
-            // Cancel any old preview frames
-            previewAnimFrames.forEach(f => cancelAnimationFrame(f));
-            previewAnimFrames = [];
-            previewPhases = [];
+      document.getElementById('playerExName').innerText = ex.name;
+      document.getElementById('playerExMuscles').innerText = ex.muscles;
+      updateTimerDisplay();
+    }
 
-            activeRoutine.exercises.forEach((ex, idx) => {
-                const card = document.createElement('div');
-                card.className = "bg-slate-800 border border-slate-700/80 rounded-xl p-3 flex flex-col sm:flex-row gap-3 items-center shadow-md";
+    function togglePauseWorkout() {
+      appState.isPaused = !appState.isPaused;
+      const icon = document.getElementById('pausePlayIcon');
+      const text = document.getElementById('pausePlayText');
+      if (appState.isPaused) {
+        icon.className = "fa-solid fa-play";
+        text.innerText = "Reanudar";
+      } else {
+        icon.className = "fa-solid fa-pause";
+        text.innerText = "Pausar";
+      }
+    }
 
-                card.innerHTML = `
-                    <div class="canvas-card w-full sm:w-36 h-32 flex-shrink-0 flex items-center justify-center relative">
-                        <canvas id="preview-canvas-${idx}" width="180" height="130" class="w-full h-full object-contain"></canvas>
-                        <span class="absolute bottom-1 right-1 bg-slate-900/80 text-sky-400 text-[10px] px-1.5 py-0.5 rounded font-mono border border-slate-700">TÉCNICA</span>
-                    </div>
-                    <div class="flex-1 w-full space-y-1 text-left">
-                        <div class="flex justify-between items-start">
-                            <h4 class="font-bold text-sm text-sky-300">${idx + 1}. ${ex.title}</h4>
-                            <span class="text-[11px] bg-slate-900 text-orange-400 font-mono px-2 py-0.5 rounded border border-slate-700">${ex.duration} seg</span>
-                        </div>
-                        <p class="text-xs text-slate-300 leading-relaxed">${ex.desc}</p>
-                    </div>
-                `;
-                container.appendChild(card);
-
-                // Initialize Canvas Animation
-                previewPhases[idx] = Math.random() * Math.PI * 2;
-                function animatePreview() {
-                    const canvas = document.getElementById(`preview-canvas-${idx}`);
-                    if (canvas) {
-                        const ctx = canvas.getContext('2d');
-                        previewPhases[idx] += 0.05;
-                        renderHumanAnimation(ctx, canvas.width, canvas.height, previewPhases[idx], ex.type);
-                        previewAnimFrames[idx] = requestAnimationFrame(animatePreview);
-                    }
-                }
-                animatePreview();
-            });
+    function nextExerciseManual() {
+      appState.workoutPhase = 'WORK';
+      appState.timerSeconds = 45;
+      appState.currentExIndex++;
+      if (appState.currentExIndex >= EXERCISES.length) {
+        appState.currentExIndex = 0;
+        appState.currentRound++;
+        if (appState.currentRound > appState.totalRounds) {
+          finishWorkoutSession();
+          return;
         }
+      }
+      updatePlayerUI();
+    }
 
-        // --- NAVIGATION TABS ---
-        function switchTab(tabId, btn) {
-            document.querySelectorAll('.tab-content').forEach(t => t.classList.add('hidden'));
-            document.querySelectorAll('.tab-btn').forEach(b => {
-                b.classList.remove('active', 'text-sky-400', 'border-t-2', 'border-sky-400', 'font-semibold');
-                b.classList.add('text-slate-400');
-            });
+    function resetRoutineState() {
+      clearInterval(workoutTimerInterval);
+      appState.currentRound = 1;
+      appState.currentExIndex = 0;
+      appState.workoutPhase = 'WORK';
+      appState.timerSeconds = 45;
+      appState.isPaused = false;
+      
+      const icon = document.getElementById('pausePlayIcon');
+      const text = document.getElementById('pausePlayText');
+      if (icon && text) {
+        icon.className = "fa-solid fa-pause";
+        text.innerText = "Pausar";
+      }
 
-            document.getElementById(tabId).classList.remove('hidden');
-            btn.classList.add('active', 'text-sky-400', 'border-t-2', 'border-sky-400', 'font-semibold');
-            btn.classList.remove('text-slate-400');
+      const modal = document.getElementById('workoutModal');
+      if (modal && !modal.classList.contains('hidden')) {
+        updatePlayerUI();
+        startIntervalEngine();
+      }
+    }
 
-            if (tabId === 'tab-calendar') renderCalendar();
-        }
+    function closeWorkoutModal() {
+      clearInterval(workoutTimerInterval);
+      document.getElementById('workoutModal').classList.add('hidden');
+      document.getElementById('workoutModal').classList.remove('flex');
+    }
 
-        // --- HABITS & PERSISTENCE ---
-        function updateUI() {
-            const todayStr = new Date().toDateString();
-            const btnC = document.getElementById('btn-creatine');
-            if (state.creatineLastDate === todayStr) {
-                btnC.innerText = "✓ 5g Creatina Tomada Hoy";
-                btnC.className = "w-full bg-slate-700 text-slate-300 font-bold py-3 rounded-lg text-sm transition border border-slate-600";
-            } else {
-                btnC.innerText = "Tomar 5g de Creatina Hoy";
-                btnC.className = "w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3 rounded-lg text-sm transition";
-            }
-            document.getElementById('creatine-streak').innerText = `${state.creatineStreak} 🔥`;
-            document.getElementById('water-val').innerText = `${state.water.toFixed(2)} / 2.5 L`;
+    function finishWorkoutSession() {
+      closeWorkoutModal();
+      
+      // Register today in completed calendar days
+      const todayStr = new Date().toISOString().split('T')[0];
+      if (!appState.completedDays.includes(todayStr)) {
+        appState.completedDays.push(todayStr);
+        saveLocalStorage();
+        renderCalendar();
+      }
 
-            const ch = document.getElementById('cardio-history');
-            if (state.cardioHistory && state.cardioHistory.length > 0) {
-                ch.innerHTML = "<strong>Últimos registros de cardio:</strong><br>" + 
-                    state.cardioHistory.slice(-3).reverse().map(c => `• ${c.dist} km en ${c.time} min (${c.date})`).join('<br>');
-            } else {
-                ch.innerText = "Sin registros de cardio aún.";
-            }
-        }
+      // Update streak
+      appState.creatineStreak++;
+      document.getElementById('streakCount').innerText = appState.creatineStreak;
 
-        function toggleCreatine() {
-            const todayStr = new Date().toDateString();
-            if (state.creatineLastDate !== todayStr) {
-                state.creatineLastDate = todayStr;
-                state.creatineStreak += 1;
-                saveState();
-            }
-        }
+      alert('🎉 ¡Felicitaciones! Has completado las 4 rondas de la rutina FitKettle 3k.');
+    }
 
-        function addWater(amount) {
-            state.water = Math.min(5.0, state.water + amount);
-            saveState();
-        }
+    // --- TRACKERS: CREATINE & HYDRATION ---
+    function toggleCreatineToday() {
+      appState.creatineDoneToday = !appState.creatineDoneToday;
+      if (appState.creatineDoneToday) {
+        appState.creatineStreak++;
+      } else {
+        appState.creatineStreak = Math.max(0, appState.creatineStreak - 1);
+      }
+      saveLocalStorage();
+      updateCreatineUI();
+    }
 
-        function resetWater() {
-            state.water = 0;
-            saveState();
-        }
+    function updateCreatineUI() {
+      document.getElementById('creatineStreakText').innerText = `${appState.creatineStreak} Días`;
+      document.getElementById('streakCount').innerText = appState.creatineStreak;
+      
+      const badge = document.getElementById('creatineStatusBadge');
+      const btn = document.getElementById('creatineBtn');
+      
+      if (appState.creatineDoneToday) {
+        badge.innerText = "Tomada (5g)";
+        badge.className = "text-[10px] font-bold uppercase px-2 py-1 rounded-md bg-emerald-500/20 text-emerald-400 border border-emerald-500/30";
+        btn.className = "bg-emerald-500 text-slate-950 font-bold px-4 py-2.5 rounded-xl shadow-md transition active:scale-95 text-xs flex items-center gap-1.5";
+        btn.innerHTML = `<i class="fa-solid fa-check-double"></i> Registrado`;
+      } else {
+        badge.innerText = "Pendiente";
+        badge.className = "text-[10px] font-bold uppercase px-2 py-1 rounded-md bg-slate-800 text-slate-400 border border-slate-700";
+        btn.className = "bg-sky-500 hover:bg-sky-600 text-slate-950 font-bold px-4 py-2.5 rounded-xl shadow-md transition active:scale-95 text-xs flex items-center gap-1.5";
+        btn.innerHTML = `<i class="fa-solid fa-plus"></i> Registrar 5g`;
+      }
+    }
 
-        function saveCardio() {
-            const distInput = document.getElementById('cardio-dist');
-            const timeInput = document.getElementById('cardio-time');
-            const dist = parseFloat(distInput.value);
-            const time = parseInt(timeInput.value);
-            if (dist && time) {
-                state.cardioHistory.push({ dist, time, date: new Date().toLocaleDateString() });
-                distInput.value = '';
-                timeInput.value = '';
-                saveState();
-            }
-        }
+    function addWater(amount) {
+      appState.waterAmount = Math.min(2500, appState.waterAmount + amount);
+      saveLocalStorage();
+      updateWaterUI();
+    }
 
-        // --- CALENDAR RENDERER ---
-        function renderCalendar() {
-            const calDays = document.getElementById('calendar-days');
-            calDays.innerHTML = '';
-            const now = new Date();
-            const daysInMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
-            
-            for (let d = 1; d <= daysInMonth; d++) {
-                const monthStr = (now.getMonth() + 1).toString().padStart(2, '0');
-                const dayStr = d.toString().padStart(2, '0');
-                const dateKey = `${now.getFullYear()}-${monthStr}-${dayStr}`;
-                const isCompleted = !!state.workoutLog[dateKey];
-                const isToday = d === now.getDate();
+    function resetWater() {
+      appState.waterAmount = 0;
+      saveLocalStorage();
+      updateWaterUI();
+    }
 
-                const dayEl = document.createElement('div');
-                dayEl.className = `p-2 rounded-lg border text-center cursor-pointer transition ${
-                    isCompleted ? 'bg-emerald-900/80 border-emerald-500 text-white font-bold' : 'bg-slate-900 border-slate-700 text-slate-400'
-                } ${isToday ? 'ring-2 ring-sky-400' : ''}`;
-                
-                dayEl.innerText = d;
-                dayEl.onclick = () => showDayDetail(dateKey, d);
-                calDays.appendChild(dayEl);
-            }
-        }
+    function updateWaterUI() {
+      document.getElementById('waterText').innerText = `${appState.waterAmount} / 2500 ml`;
+      const pct = Math.min(100, (appState.waterAmount / 2500) * 100);
+      document.getElementById('waterBar').style.width = `${pct}%`;
+    }
 
-        function showDayDetail(dateKey, dayNum) {
-            const detailCard = document.getElementById('day-detail-card');
-            const detailDate = document.getElementById('detail-date');
-            const detailInfo = document.getElementById('detail-info');
-            detailCard.classList.remove('hidden');
-            detailDate.innerText = `Detalle Día ${dayNum}`;
+    // --- CALENDAR RENDERER ---
+    function renderCalendar() {
+      const grid = document.getElementById('calendarGrid');
+      grid.innerHTML = '';
 
-            if (state.workoutLog[dateKey]) {
-                const log = state.workoutLog[dateKey];
-                detailInfo.innerHTML = `✅ <strong>Completaste:</strong> ${log.name}<br>💪 ¡Sesión registrada con éxito!`;
-            } else {
-                detailInfo.innerText = "❌ No hay registro de entrenamiento completado para esta fecha.";
-            }
-        }
+      // November 2026 starts on Sunday (day 0 or 7 offset)
+      const daysInNov = 30;
+      const startOffset = 6; // Lun = offset adjustment
 
-        // --- WORKOUT PLAYER & TIMER ENGINE ---
-        let workoutTimerInterval = null;
-        let activeModalAnimFrame = null;
-        let activeModalPhase = 0;
-        
-        let currentExIdx = 0;
-        let currentRound = 1;
-        let isRest = false;
-        let timeLeft = 0;
-        let totalStepTime = 0;
+      for (let i = 0; i < startOffset; i++) {
+        const emptyCell = document.createElement('div');
+        emptyCell.className = "p-2";
+        grid.appendChild(emptyCell);
+      }
 
-        function resetCurrentWorkoutSession() {
-            stopWorkout();
-            currentExIdx = 0;
-            currentRound = 1;
-            isRest = false;
-            alert("🔄 Rutina reiniciada. Lista para comenzar desde el ejercicio 1.");
-        }
+      for (let day = 1; day <= daysInNov; day++) {
+        const dateStr = `2026-11-${day < 10 ? '0' + day : day}`;
+        const isCompleted = appState.completedDays.includes(dateStr);
+        const isTargetDay = day === 21;
 
-        function restartWorkoutSession() {
-            clearInterval(workoutTimerInterval);
-            currentExIdx = 0;
-            currentRound = 1;
-            isRest = false;
-            setupWorkoutStep();
-            startTimerEngine();
-        }
+        const cell = document.createElement('div');
+        cell.className = `p-2 rounded-xl flex flex-col items-center justify-center font-bold text-xs border transition ${
+          isCompleted 
+            ? 'bg-emerald-500/20 border-emerald-500/50 text-emerald-400' 
+            : isTargetDay 
+              ? 'bg-orange-500/20 border-orange-500/50 text-orange-400 active-glow' 
+              : 'bg-slate-900 border-slate-800 text-slate-400'
+        }`;
 
-        function startWorkout() {
-            document.getElementById('player-modal').classList.remove('hidden');
-            document.getElementById('player-modal').classList.add('flex');
-            document.getElementById('player-routine-title').innerText = activeRoutine.name;
+        cell.innerHTML = `
+          <span>${day}</span>
+          ${isCompleted ? '<i class="fa-solid fa-check text-[10px] mt-0.5 text-emerald-400"></i>' : ''}
+          ${isTargetDay && !isCompleted ? '<i class="fa-solid fa-flag text-[10px] mt-0.5 text-orange-400"></i>' : ''}
+        `;
 
-            currentExIdx = 0;
-            currentRound = 1;
-            isRest = false;
-
-            setupWorkoutStep();
-            startTimerEngine();
-            startActiveModalAnimation();
-        }
-
-        function stopWorkout() {
-            clearInterval(workoutTimerInterval);
-            cancelAnimationFrame(activeModalAnimFrame);
-            document.getElementById('player-modal').classList.add('hidden');
-            document.getElementById('player-modal').classList.remove('flex');
-        }
-
-        function setupWorkoutStep() {
-            const exList = activeRoutine.exercises;
-            const ex = exList[currentExIdx];
-
-            if (isRest) {
-                document.getElementById('ex-title').innerText = "⏸️ DESCANSO";
-                document.getElementById('ex-desc').innerText = "Recupera el aliento, hidrátate y prepárate para el siguiente ejercicio.";
-                document.getElementById('timer-status').innerText = "DESCANSO ACTIVO";
-                document.getElementById('timer-status').className = "text-center text-xs font-bold uppercase tracking-widest text-emerald-400";
-                timeLeft = 15;
-            } else {
-                document.getElementById('ex-title').innerText = ex.title;
-                document.getElementById('ex-desc').innerText = ex.desc;
-                document.getElementById('timer-status').innerText = "¡EN TRABAJO!";
-                document.getElementById('timer-status').className = "text-center text-xs font-bold uppercase tracking-widest text-orange-500";
-                timeLeft = ex.duration;
-            }
-
-            document.getElementById('ex-round').innerText = `Ronda ${currentRound}/4 - Ejercicio ${currentExIdx + 1}/${exList.length}`;
-            totalStepTime = timeLeft;
-            updateTimerDisplay();
-        }
-
-        function updateTimerDisplay() {
-            const mins = Math.floor(timeLeft / 60).toString().padStart(2, '0');
-            const secs = (timeLeft % 60).toString().padStart(2, '0');
-            document.getElementById('timer-val').innerText = `${mins}:${secs}`;
-            const pct = Math.min(100, Math.max(0, ((totalStepTime - timeLeft) / totalStepTime) * 100));
-            document.getElementById('progress-fill').style.width = `${pct}%`;
-        }
-
-        function startTimerEngine() {
-            clearInterval(workoutTimerInterval);
-            workoutTimerInterval = setInterval(() => {
-                timeLeft--;
-                updateTimerDisplay();
-
-                if (timeLeft <= 0) {
-                    if (!isRest) {
-                        isRest = true;
-                        setupWorkoutStep();
-                    } else {
-                        isRest = false;
-                        currentExIdx++;
-                        if (currentExIdx >= activeRoutine.exercises.length) {
-                            currentExIdx = 0;
-                            currentRound++;
-                        }
-                        if (currentRound > 4) {
-                            // WORKOUT FINISHED!
-                            const todayNow = new Date();
-                            const monthStr = (todayNow.getMonth() + 1).toString().padStart(2, '0');
-                            const dayStr = todayNow.getDate().toString().padStart(2, '0');
-                            const dateKey = `${todayNow.getFullYear()}-${monthStr}-${dayStr}`;
-                            
-                            state.workoutLog[dateKey] = { routine: currentRoutineKey, name: activeRoutine.name };
-                            saveState();
-
-                            alert("🎉 ¡FELICITACIONES! Has completado las 4 rondas de la rutina. Guardado en el calendario.");
-                            stopWorkout();
-                            return;
-                        }
-                        setupWorkoutStep();
-                    }
-                }
-            }, 1000);
-        }
-
-        function startActiveModalAnimation() {
-            const canvas = document.getElementById('active-modal-canvas');
-            if (!canvas) return;
-            const ctx = canvas.getContext('2d');
-
-            function loop() {
-                activeModalPhase += 0.06;
-                const exList = activeRoutine.exercises;
-                const currentType = isRest ? 'rest' : exList[currentExIdx].type;
-                
-                renderHumanAnimation(ctx, canvas.width, canvas.height, activeModalPhase, currentType);
-                activeModalAnimFrame = requestAnimationFrame(loop);
-            }
-            loop();
-        }
-
-        // Initial setup on window load
-        window.onload = function() {
-            loadRoutineUI();
-            updateUI();
-        };
-    </script>
+        grid.appendChild(cell);
+      }
+    }
+  </script>
 </body>
 </html>
