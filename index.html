@@ -44,7 +44,7 @@
         .ex-name { font-weight: bold; font-size: 0.85rem; }
         .ex-muscles { font-size: 0.75rem; color: var(--accent-orange); }
 
-        .viewer-container { width: 100%; height: 230px; background: #020617; border-radius: 10px; border: 1px solid #334155; position: relative; overflow: hidden; display: flex; justify-content: center; align-items: center; margin-bottom: 10px; }
+        .viewer-container { width: 100%; height: 240px; background: #020617; border-radius: 10px; border: 1px solid #334155; position: relative; overflow: hidden; display: flex; justify-content: center; align-items: center; margin-bottom: 10px; }
         canvas { background: #020617; width: 100%; height: 100%; }
 
         /* Modal Player */
@@ -98,7 +98,7 @@
                 <span style="font-size: 0.75rem; color: var(--accent);">4 Rondas | 20-30 min</span>
             </div>
             
-            <!-- Visor Anatómico Detallado -->
+            <!-- Visor Humano 3D Anatómico Claro -->
             <div class="viewer-container">
                 <canvas id="previewCanvas"></canvas>
             </div>
@@ -228,7 +228,7 @@
             if (tabId === 'tab-calendar') renderCalendar();
         }
 
-        let state = JSON.parse(localStorage.getItem('fitkettle_v7_state')) || {
+        let state = JSON.parse(localStorage.getItem('fitkettle_v8_state')) || {
             creatineLastDate: null,
             creatineStreak: 0,
             water: 0,
@@ -237,7 +237,7 @@
         };
 
         function saveState() {
-            localStorage.setItem('fitkettle_v7_state', JSON.stringify(state));
+            localStorage.setItem('fitkettle_v8_state', JSON.stringify(state));
             updateUI();
         }
 
@@ -364,7 +364,6 @@
             }
         }
 
-        // CONTROLADOR DE TEMPORIZADOR
         let workoutTimer = null;
         let currentExIdx = 0;
         let currentRound = 1;
@@ -435,7 +434,7 @@
                             currentExIdx = 0;
                             currentRound++;
                         }
-                        if (currentRound > 4) {
+                        idCheck: if (currentRound > 4) {
                             const todayNow = new Date();
                             const dateKey = `${todayNow.getFullYear()}-${(todayNow.getMonth()+1).toString().padStart(2,'0')}-${todayNow.getDate().toString().padStart(2,'0')}`;
                             state.workoutLog[dateKey] = { routine: currentRoutineKey, name: activeRoutine.name };
@@ -443,7 +442,7 @@
 
                             alert("🎉 ¡Entrenamiento Completo! Quedó registrado en tu calendario.");
                             stopWorkout();
-                            return;
+                            break idCheck;
                         }
                         setupExercise();
                     }
@@ -451,213 +450,192 @@
             }, 1000);
         }
 
-        // MOTOR DE DIBUJO ANATÓMICO MUSCULAR 3D/VOLUMÉTRICO AVANZADO
+        // RENDERIZADOR DE MODELO HUMANO 3D ESTILIZADO ANATÓMICO CON MÚSCULOS ROJOS Y PESA RUSA
         let globalAnimPhase = 0;
 
-        function drawLimb(ctx, p1, p2, thickness, baseColor, highlightColor) {
-            ctx.save();
-            ctx.beginPath();
-            ctx.moveTo(p1.x, p1.y);
-            ctx.lineTo(p2.x, p2.y);
-            ctx.lineWidth = thickness;
-            ctx.strokeStyle = baseColor;
-            ctx.lineCap = 'round';
-            ctx.stroke();
+        function drawHumanModel(ctx, cx, cy, type, phase) {
+            ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+            const sin = Math.sin(phase);
+            const cos = Math.cos(phase);
 
-            if (highlightColor) {
+            const bodyGray = '#94a3b8';
+            const bodyLight = '#cbd5e1';
+            const muscleRed = '#ef4444';
+            const muscleOrange = '#f97316';
+            const kbColor = '#0f172a';
+            const kbBorder = '#334155';
+
+            ctx.save();
+            ctx.translate(cx, cy + 15);
+
+            function draw3DLimb(p1, p2, width, highlight) {
                 ctx.beginPath();
                 ctx.moveTo(p1.x, p1.y);
                 ctx.lineTo(p2.x, p2.y);
-                ctx.lineWidth = thickness * 0.7;
-                ctx.strokeStyle = highlightColor;
+                ctx.lineWidth = width;
+                ctx.strokeStyle = bodyGray;
                 ctx.lineCap = 'round';
                 ctx.stroke();
+
+                if (highlight) {
+                    ctx.beginPath();
+                    ctx.moveTo(p1.x, p1.y);
+                    ctx.lineTo(p2.x, p2.y);
+                    ctx.lineWidth = width * 0.75;
+                    ctx.strokeStyle = highlight;
+                    ctx.lineCap = 'round';
+                    ctx.stroke();
+                }
             }
-            ctx.restore();
-        }
 
-        function drawMuscleGroup(ctx, cx, cy, rx, ry, color) {
-            ctx.save();
-            ctx.beginPath();
-            ctx.ellipse(cx, cy, rx, ry, 0, 0, Math.PI * 2);
-            ctx.fillStyle = color;
-            ctx.fill();
-            ctx.strokeStyle = '#c2410c';
-            ctx.lineWidth = 1;
-            ctx.stroke();
-            ctx.restore();
-        }
+            function drawMuscleVolume(x, y, rx, ry, color) {
+                ctx.beginPath();
+                ctx.ellipse(x, y, rx, ry, 0, 0, Math.PI * 2);
+                ctx.fillStyle = color;
+                ctx.fill();
+            }
 
-        function drawKettlebell(ctx, x, y) {
-            ctx.save();
-            ctx.fillStyle = '#090d16';
-            ctx.strokeStyle = '#334155';
-            ctx.lineWidth = 2;
-            ctx.beginPath(); ctx.arc(x, y + 6, 12, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
-            ctx.beginPath(); ctx.arc(x, y - 2, 7, Math.PI, 0, false); ctx.lineWidth = 3.5; ctx.stroke();
-            ctx.restore();
-        }
+            function drawKettlebell(x, y) {
+                ctx.beginPath();
+                ctx.arc(x, y + 6, 12, 0, Math.PI * 2);
+                ctx.fillStyle = kbColor;
+                ctx.fill();
+                ctx.strokeStyle = kbBorder;
+                ctx.lineWidth = 2;
+                ctx.stroke();
 
-        function renderDetailedAnatomy(canvas, type) {
-            if (!canvas) return;
-            const ctx = canvas.getContext('2d');
-            const w = canvas.width = canvas.parentElement.clientWidth;
-            const h = canvas.height = canvas.parentElement.clientHeight;
-            
-            ctx.clearRect(0, 0, w, h);
-            
-            const sin = Math.sin(globalAnimPhase);
-            const cx = w / 2;
-            const cy = h / 2 + 10;
-            
-            const silverBase = '#64748b';
-            const silverLight = '#cbd5e1';
-            const redMuscle = '#ef4444';
-            const orangeHighlight = '#f97316';
+                ctx.beginPath();
+                ctx.arc(x, y - 2, 7, Math.PI, 0, false);
+                ctx.lineWidth = 3.5;
+                ctx.strokeStyle = kbBorder;
+                ctx.stroke();
+            }
 
             if (type === 'lunge') {
-                // Zancada Inversa
-                const hipY = cy - 10 + sin * 12;
-                const head = { x: cx - 20, y: hipY - 60 };
-                const hip = { x: cx - 10, y: hipY };
-                
-                // Cabeza y Torso
-                ctx.fillStyle = silverLight;
-                ctx.beginPath(); ctx.arc(head.x, head.y, 12, 0, Math.PI * 2); ctx.fill();
-                drawLimb(ctx, {x: head.x, y: head.y + 12}, hip, 18, silverBase, silverLight);
+                const hipY = -15 + sin * 6;
+                ctx.beginPath(); ctx.arc(-15, hipY - 55, 13, 0, Math.PI * 2); ctx.fillStyle = bodyLight; ctx.fill();
+                draw3DLimb({x: -15, y: hipY - 42}, {x: -10, y: hipY}, 20, bodyLight);
+                drawMuscleVolume(-12, hipY - 20, 9, 14, muscleRed);
 
-                // Pierna delantera flexionada
-                const kneeF = { x: cx - 45, y: hipY + 30 };
-                const footF = { x: cx - 45, y: hipY + 70 };
-                drawLimb(ctx, hip, kneeF, 14, silverBase, redMuscle); // Cuádriceps rojo
-                drawLimb(ctx, kneeF, footF, 10, silverBase, silverLight);
-                drawMuscleGroup(ctx, (hip.x + kneeF.x)/2, (hip.y + kneeF.y)/2, 10, 6, orangeHighlight);
+                draw3DLimb({x: -10, y: hipY}, {x: -45, y: hipY + 35}, 15, bodyGray);
+                draw3DLimb({x: -45, y: hipY + 35}, {x: -45, y: hipY + 75}, 11, bodyLight);
+                drawMuscleVolume(-28, hipY + 18, 8, 14, muscleRed);
 
-                // Pierna trasera
-                const kneeB = { x: cx + 35, y: hipY + 40 };
-                const footB = { x: cx + 45, y: hipY + 70 };
-                drawLimb(ctx, hip, kneeB, 14, silverBase, redMuscle); // Glúteo/Femorales rojo
-                drawLimb(ctx, kneeB, footB, 10, silverBase, silverLight);
+                draw3DLimb({x: -10, y: hipY}, {x: +30, y: hipY + 45}, 14, bodyGray);
+                draw3DLimb({x: +30, y: hipY + 45}, {x: +40, y: hipY + 75}, 10, bodyLight);
+                drawMuscleVolume(+15, hipY + 25, 8, 12, muscleOrange);
 
-                drawKettlebell(ctx, head.x + 5, head.y + 35);
+                drawKettlebell(-10, hipY - 10);
 
             } else if (type === 'bridge') {
-                // Puente de Glúteos
-                const floorY = cy + 45;
-                const hipY = floorY - 20 - Math.abs(sin) * 40;
-                const head = { x: cx - 70, y: floorY - 10 };
-                const hip = { x: cx, y: hipY };
-                const feet = { x: cx + 50, y: floorY };
+                const floorY = 55;
+                const hipY = floorY - 30 - Math.abs(sin) * 40;
+                const head = { x: -65, y: floorY - 12 };
+                const hip = { x: 0, y: hipY };
+                const feet = { x: 50, y: floorY };
 
-                ctx.fillStyle = silverLight;
-                ctx.beginPath(); ctx.arc(head.x, head.y, 12, 0, Math.PI * 2); ctx.fill();
-                drawLimb(ctx, head, hip, 18, silverBase, silverLight);
-                drawLimb(ctx, hip, feet, 14, silverBase, redMuscle); // Glúteos activos
-                drawMuscleGroup(ctx, hip.x, hip.y + 5, 12, 8, orangeHighlight);
-                
-                drawKettlebell(ctx, hip.x, hip.y - 12);
+                ctx.beginPath(); ctx.arc(head.x, head.y, 13, 0, Math.PI * 2); ctx.fillStyle = bodyLight; ctx.fill();
+                draw3DLimb(head, hip, 20, bodyLight);
+                drawMuscleVolume(head.x + 25, head.y - 10, 12, 8, muscleRed);
+
+                draw3DLimb(hip, feet, 16, muscleRed);
+                drawMuscleVolume(hip.x, hip.y + 5, 14, 10, muscleOrange);
+
+                drawKettlebell(hip.x, hip.y - 12);
 
             } else if (type === 'twist') {
-                // Giros Rusos
-                const twistX = sin * 40;
-                const head = { x: cx, y: cy - 45 };
-                const hip = { x: cx, y: cy + 15 };
+                const rot = sin * 25;
+                const head = { x: 0, y: -50 };
+                const hip = { x: 0, y: 10 };
 
-                ctx.fillStyle = silverLight;
-                ctx.beginPath(); ctx.arc(head.x, head.y, 12, 0, Math.PI * 2); ctx.fill();
-                drawLimb(ctx, head, hip, 18, silverBase, redMuscle); // Abdomen activo
-                drawMuscleGroup(ctx, cx, cy - 10, 10, 14, orangeHighlight);
+                ctx.beginPath(); ctx.arc(head.x, head.y, 13, 0, Math.PI * 2); ctx.fillStyle = bodyLight; ctx.fill();
+                draw3DLimb(head, hip, 20, bodyLight);
+                drawMuscleVolume(0, -20, 12, 16, muscleRed);
 
-                // Piernas elevadas
-                drawLimb(ctx, hip, {x: cx - 35, y: cy + 45}, 12, silverBase, silverLight);
-                drawLimb(ctx, hip, {x: cx + 35, y: cy + 45}, 12, silverBase, silverLight);
+                draw3DLimb(hip, {x: -35, y: 55}, 13, bodyGray);
+                draw3DLimb(hip, {x: 35, y: 55}, 13, bodyGray);
 
-                drawKettlebell(ctx, cx + twistX, cy - 5);
+                drawKettlebell(rot, -5);
 
             } else if (type === 'pushup') {
-                // Flexiones Asimétricas
-                const pushY = cy + 15 + sin * 18;
-                const head = { x: cx - 55, y: pushY - 10 };
-                const feet = { x: cx + 65, y: cy + 35 };
+                const bodyY = 15 + sin * 18;
+                const head = { x: -55, y: bodyY - 15 };
+                const feet = { x: 65, y: bodyY + 30 };
 
-                ctx.fillStyle = silverLight;
-                ctx.beginPath(); ctx.arc(head.x, head.y, 12, 0, Math.PI * 2); ctx.fill();
-                drawLimb(ctx, head, feet, 18, silverBase, redMuscle); // Pectoral activo
-                drawMuscleGroup(ctx, head.x + 25, pushY - 5, 14, 8, orangeHighlight);
+                ctx.beginPath(); ctx.arc(head.x, head.y, 13, 0, Math.PI * 2); ctx.fillStyle = bodyLight; ctx.fill();
+                draw3DLimb(head, feet, 18, bodyLight);
+                drawMuscleVolume(head.x + 25, head.y + 5, 14, 9, muscleRed);
 
-                drawKettlebell(ctx, head.x + 25, pushY + 15);
+                drawKettlebell(head.x + 25, bodyY + 18);
 
             } else if (type === 'row' || type === 'deadlift') {
-                // Remo / Peso Muerto
-                const leanY = cy - 20 + sin * 15;
-                const head = { x: cx - 30, y: leanY - 45 };
-                const hip = { x: cx + 5, y: leanY + 15 };
+                const leanY = -15 + sin * 12;
+                const head = { x: -35, y: leanY - 45 };
+                const hip = { x: 5, y: leanY + 15 };
 
-                ctx.fillStyle = silverLight;
-                ctx.beginPath(); ctx.arc(head.x, head.y, 12, 0, Math.PI * 2); ctx.fill();
-                drawLimb(ctx, head, hip, 18, silverBase, redMuscle); // Dorsales / Femorales
-                drawMuscleGroup(ctx, (head.x+hip.x)/2, (head.y+hip.y)/2, 12, 10, orangeHighlight);
+                ctx.beginPath(); ctx.arc(head.x, head.y, 13, 0, Math.PI * 2); ctx.fillStyle = bodyLight; ctx.fill();
+                draw3DLimb(head, hip, 20, bodyLight);
+                drawMuscleVolume((head.x + hip.x)/2, (head.y + hip.y)/2, 14, 10, muscleRed);
 
-                drawLimb(ctx, hip, {x: cx - 10, y: cy + 65}, 12, silverBase, silverLight);
-                drawLimb(ctx, hip, {x: cx + 15, y: cy + 65}, 12, silverBase, silverLight);
+                draw3DLimb(hip, {x: -10, y: 65}, 14, bodyGray);
+                draw3DLimb(hip, {x: 15, y: 65}, 14, bodyGray);
 
-                drawKettlebell(ctx, head.x, leanY + 20 - sin * 18);
+                drawKettlebell(head.x + 5, leanY + 25 - sin * 15);
 
             } else if (type === 'swing') {
-                // Swing de Kettlebell
-                const swingX = cx + sin * 55;
-                const swingY = cy - 15 - Math.cos(globalAnimPhase) * 25;
-                const head = { x: cx - 15, y: cy - 50 };
-                const hip = { x: cx + 5, y: cy + 10 };
+                const swingX = sin * 55;
+                const swingY = -10 - cos * 30;
+                const head = { x: -15, y: -50 };
+                const hip = { x: 5, y: 10 };
 
-                ctx.fillStyle = silverLight;
-                ctx.beginPath(); ctx.arc(head.x, head.y, 12, 0, Math.PI * 2); ctx.fill();
-                drawLimb(ctx, head, hip, 18, silverBase, redMuscle); // Glúteos y cadena posterior
-                drawMuscleGroup(ctx, hip.x - 5, hip.y + 5, 11, 11, orangeHighlight);
+                ctx.beginPath(); ctx.arc(head.x, head.y, 13, 0, Math.PI * 2); ctx.fillStyle = bodyLight; ctx.fill();
+                draw3DLimb(head, hip, 20, bodyLight);
+                drawMuscleVolume(hip.x - 5, hip.y, 13, 12, muscleRed);
 
-                drawLimb(ctx, hip, {x: cx - 15, y: cy + 65}, 12, silverBase, silverLight);
-                drawLimb(ctx, hip, {x: cx + 15, y: cy + 65}, 12, silverBase, silverLight);
+                draw3DLimb(hip, {x: -15, y: 65}, 14, bodyGray);
+                draw3DLimb(hip, {x: 15, y: 65}, 14, bodyGray);
 
-                drawLimb(ctx, {x: head.x + 5, y: head.y + 15}, {x: swingX, y: swingY}, 8, silverBase, silverLight);
-                drawKettlebell(ctx, swingX, swingY);
+                draw3DLimb({x: head.x + 5, y: head.y + 15}, {x: swingX, y: swingY}, 9, bodyLight);
+                drawKettlebell(swingX, swingY);
 
             } else {
-                // Sentadilla / Press
-                const squatY = cy - 10 + Math.abs(sin) * 22;
-                const head = { x: cx, y: squatY - 50 };
-                const hip = { x: cx, y: squatY + 10 };
+                const squatY = -10 + Math.abs(sin) * 22;
+                const head = { x: 0, y: squatY - 50 };
+                const hip = { x: 0, y: squatY + 10 };
 
-                ctx.fillStyle = silverLight;
-                ctx.beginPath(); ctx.arc(head.x, head.y, 12, 0, Math.PI * 2); ctx.fill();
-                drawLimb(ctx, head, hip, 18, silverBase, silverLight);
+                ctx.beginPath(); ctx.arc(head.x, head.y, 13, 0, Math.PI * 2); ctx.fillStyle = bodyLight; ctx.fill();
+                draw3DLimb(head, hip, 20, bodyLight);
 
-                // Cuádriceps rojo
-                const kneeL = { x: cx - 22, y: cy + 35 };
-                const kneeR = { x: cx + 22, y: cy + 35 };
-                drawLimb(ctx, hip, kneeL, 14, silverBase, redMuscle);
-                drawLimb(ctx, hip, kneeR, 14, silverBase, redMuscle);
-                drawMuscleGroup(ctx, cx - 12, cy + 20, 8, 12, orangeHighlight);
-                drawMuscleGroup(ctx, cx + 12, cy + 20, 8, 12, orangeHighlight);
+                const kneeL = { x: -25, y: squatY + 35 };
+                const kneeR = { x: +25, y: squatY + 35 };
+                draw3DLimb(hip, kneeL, 16, muscleRed);
+                draw3DLimb(hip, kneeR, 16, muscleRed);
+                drawMuscleVolume(-15, squatY + 22, 9, 14, muscleOrange);
+                drawMuscleVolume(+15, squatY + 22, 9, 14, muscleOrange);
 
-                drawLimb(ctx, kneeL, {x: cx - 22, y: cy + 65}, 10, silverBase, silverLight);
-                drawLimb(ctx, kneeR, {x: cx + 22, y: cy + 65}, 10, silverBase, silverLight);
+                draw3DLimb(kneeL, {x: -25, y: 65}, 11, bodyLight);
+                draw3DLimb(kneeR, {x: +25, y: 65}, 11, bodyLight);
 
-                drawKettlebell(ctx, cx, squatY - 12);
+                drawKettlebell(0, squatY - 8);
             }
+
+            ctx.restore();
         }
 
         function mainLoop() {
-            globalAnimPhase += 0.08;
+            globalAnimPhase += 0.07;
             
             const previewCanvas = document.getElementById('previewCanvas');
-            const activeType = activeRoutine.exercises[selectedExIdx].type;
-            renderDetailedAnatomy(previewCanvas, activeType);
+            if (previewCanvas) {
+                const activeType = activeRoutine.exercises[selectedExIdx].type;
+                drawHumanModel(previewCanvas.getContext('2d'), previewCanvas.width / 2, previewCanvas.height / 2, activeType, globalAnimPhase);
+            }
 
             const playerModal = document.getElementById('player-modal');
-            if (playerModal.style.display === 'flex') {
+            if (playerModal && playerModal.style.display === 'flex') {
                 const playerCanvas = document.getElementById('playerCanvas');
                 const playerType = isRest ? 'rest' : activeRoutine.exercises[currentExIdx].type;
-                renderDetailedAnatomy(playerCanvas, playerType);
+                drawHumanModel(playerCanvas.getContext('2d'), playerCanvas.width / 2, playerCanvas.height / 2, playerType, globalAnimPhase);
             }
 
             requestAnimationFrame(mainLoop);
